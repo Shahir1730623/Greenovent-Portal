@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/dashboard_screens/profile_screen_edit.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../app_colors.dart';
@@ -41,6 +42,60 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
       pastCampaigns = 0;
 
   int? sortColumnIndex;
+
+  DateTime date = DateTime.now();
+  DateTime startingDate = DateTime.now();
+  DateTime endingDate = DateTime.now();
+
+  String? formattedStartingDate,formattedEndingDate;
+  int startingDateCounter = 0, endingDateCounter = 0;
+  bool flag = false, flag2 = false;
+
+  pickStartingDate() async {
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(), //get today's date
+        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
+        lastDate: DateTime(2030)
+    );
+
+    if(pickedDate != null ){
+      setState(() {
+        startingDate = pickedDate;
+        formattedStartingDate = DateFormat('dd-MM-yyyy').format(startingDate);
+        startingDateCounter++;
+        flag = true;
+      });
+    }
+
+    else{
+      print("Date is not selected");
+    }
+
+  }
+  pickEndingDate() async {
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(), //get today's date
+        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
+        lastDate: DateTime(2030)
+    );
+
+    if(pickedDate != null ){
+      setState(() {
+        endingDate = pickedDate;
+        formattedEndingDate = DateFormat('dd-MM-yyyy').format(endingDate);
+        endingDateCounter++;
+        flag2 = true;
+      });
+    }
+
+    else{
+      print("Date is not selected");
+    }
+
+  }
+
   void downloadFile(String url) {
     html.AnchorElement anchorElement = html.AnchorElement(href: url);
     anchorElement.download = url;
@@ -756,6 +811,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                         ],
                       ),
 
+
                       SizedBox(
                         height: height * 0.03,
                       ),
@@ -763,148 +819,177 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(children: [
-                            SizedBox(
-                              width: width * 0.11,
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const DataInputForm()));
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Add Campaign Data",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: width * 0.01,
-                            ),
-                            SizedBox(
-                              width: width * 0.11,
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final status = await showTextDialog2(
-                                    context,
-                                    title: 'Add client',
-                                    value: '',
-                                  );
-                                  if (status != null) {
-                                    Map<String, dynamic> data = {'name': status};
-                                    FirebaseFirestore.instance
-                                        .collection('clientList')
-                                        .doc(idGenerator())
-                                        .set(data);
-                                  }
-                                  setState(() {
-                                  });
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Add Client",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: width * 0.01,
-                            ),
-                            SizedBox(
-                              width: width * 0.11,
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final status = await showTextDialog(
-                                    context,
-                                    title: 'Delete client',
-                                    value: '',
-                                  );
-
-                                  if (status != null) {
-                                    var snackBar = const SnackBar(
-                                        content: Text('Client deleted'));
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(snackBar);
-                                    var snapshot = await FirebaseFirestore.instance
-                                        .collection('clientList')
-                                        .where('name', isEqualTo: status)
-                                        .get();
-                                    await snapshot.docs.first.reference.delete();
-                                  }
-                                  setState(() {});
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Delete Client",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ]),
-
-                          // Filter By
-                          /*Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            width: width / 3,
-                            height: 55,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                    width: 1.5, color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton(
-                                iconSize: 26,
-                                dropdownColor: Colors.white,
-                                isExpanded: true,
-                                hint: const Text(
-                                  "Filter by",
-                                  style: TextStyle(
-                                    fontSize: 15.0,
-                                    color: Colors.black,
+                          // Add Campaign,Add Client, Delete Client
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const DataInputForm()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Campaign Data",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
                                   ),
                                 ),
-                                value: selectedFilter,
-                                onChanged: (newValue) async {
-                                  setState(() {
-                                    selectedFilter = newValue;
-                                  });
-                                },
-                                items: filterByList.map((filter) {
-                                  return DropdownMenuItem(
-                                    value: filter,
-                                    child: Text(
-                                      filter,
-                                      style: const TextStyle(color: Colors.black),
-                                    ),
-                                  );
-                                }).toList(),
                               ),
-                            ),
-                          )*/
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final status = await showTextDialog2(
+                                      context,
+                                      title: 'Add client',
+                                      value: '',
+                                    );
+                                    if (status != null) {
+                                      Map<String, dynamic> data = {'name': status};
+                                      FirebaseFirestore.instance
+                                          .collection('clientList')
+                                          .doc(idGenerator())
+                                          .set(data);
+                                    }
+                                    setState(() {
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final status = await showTextDialog(
+                                      context,
+                                      title: 'Delete client',
+                                      value: '',
+                                    );
+
+                                    if (status != null) {
+                                      var snackBar = const SnackBar(
+                                          content: Text('Client deleted'));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+                                      var snapshot = await FirebaseFirestore.instance
+                                          .collection('clientList')
+                                          .where('name', isEqualTo: status)
+                                          .get();
+                                      await snapshot.docs.first.reference.delete();
+                                    }
+                                    setState(() {});
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Delete Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Start & End Date
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                height: 50,
+                                width: width * 0.15,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    pickStartingDate();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    primary: (Colors.white),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                  ),
+                                  child: Text(
+                                    (startingDateCounter != 0) ? formattedStartingDate! : "Select starting date",
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: width * 0.01),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                height: 50,
+                                width: width * 0.15,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    pickEndingDate();
+                                    // DocumentSnapshot<Map<String, dynamic>> snap;
+                                    // num = snapshot.data.docs.length;
+                                    // for(int i = 0;i < num; i++){
+                                    // snap = snapshot.data.docs[i];
+                                    // timestamp = snap.data()!['date'];
+                                    // if(snap.data()!["clients"] == clientsDropdownvalue
+                                    // && timestamp.seconds >= Timestamp.fromDate(startDate).seconds
+                                    // && timestamp.seconds <= Timestamp.fromDate(endDate).seconds
+                                    // && snap.data()!['amount_status'] == 'Due'
+                                    // )
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    primary: (Colors.white),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                  ),
+                                  child: Text(
+                                    (endingDateCounter != 0) ? formattedEndingDate! : "Select ending date",
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
                         ],
                       ),
 
@@ -928,27 +1013,43 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                     child: CircularProgressIndicator());
                               }
 
-                              return SingleChildScrollView(
-                                  child: FittedBox(
-                                    child: DataTable(
-                                      sortColumnIndex: sortColumnIndex,
-                                      headingRowColor: MaterialStateProperty.resolveWith(
-                                              (states) => Colors.grey.shade200),
-                                      columns: const [
-                                        DataColumn(label: Text("Campaign Name")),
-                                        DataColumn(label: Text("Post Link")),
-                                        DataColumn(label: Text("Client Name")),
-                                        DataColumn(label: Text("Budget (\$)")),
-                                        DataColumn(label: Text("Total spent (\$)")),
-                                        DataColumn(label: Text("Starting Date")),
-                                        DataColumn(label: Text("Ending Date")),
-                                        DataColumn(label: Text("PDF File")),
-                                        DataColumn(label: Text("Status")),
-                                        DataColumn(label: Text("")),
-                                      ],
-                                      rows: _createRows(snapshot.data!),
-                                    ),
-                                  )
+                              return StreamBuilder(
+                                stream: FirebaseFirestore.instance.collection('campaignData').where('client', isEqualTo: selectedClient).snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    return Text('Error = ${snapshot.error}');
+                                  }
+
+                                  if (!snapshot.hasData) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  else{
+                                    return SingleChildScrollView(
+                                        child: FittedBox(
+                                          child: DataTable(
+                                            sortColumnIndex: sortColumnIndex,
+                                            headingRowColor: MaterialStateProperty.resolveWith(
+                                                    (states) => Colors.grey.shade200),
+                                            columns: const [
+                                              DataColumn(label: Text("Campaign Name")),
+                                              DataColumn(label: Text("Post Link")),
+                                              DataColumn(label: Text("Client Name")),
+                                              DataColumn(label: Text("Budget (\$)")),
+                                              DataColumn(label: Text("Total spent (\$)")),
+                                              DataColumn(label: Text("Starting Date")),
+                                              DataColumn(label: Text("Ending Date")),
+                                              DataColumn(label: Text("PDF File")),
+                                              DataColumn(label: Text("Status")),
+                                              DataColumn(label: Text("")),
+                                            ],
+                                            rows: _createRows(snapshot.data!),
+                                          ),
+                                        )
+                                    );
+                                  }
+                                },
                               );
                             },
                           ),
