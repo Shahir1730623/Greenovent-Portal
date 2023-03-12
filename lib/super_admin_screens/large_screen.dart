@@ -310,213 +310,211 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                               }
                             }
 
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Flexible(
-                                  child: Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(18.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: const [
-                                              Icon(
-                                                Icons.article,
-                                                size: 26.0,
-                                              ),
-                                              SizedBox(
-                                                width: 15.0,
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  "Total Campaigns",
-                                                  style: TextStyle(
-                                                    fontSize: 26.0,
+                            return StreamBuilder(
+                              stream: FirebaseFirestore.instance
+                                  .collection('clientList')
+                                  .snapshots(),
+
+                              builder: (context, snapshot){
+                                if (snapshot.hasError) {
+                                  return Text('Error = ${snapshot.error}');
+                                }
+
+                                if (!snapshot.hasData) {
+                                  return const CircularProgressIndicator();
+                                } else {
+                                  totalClients = 0;
+                                  for (var result in snapshot.data!.docs) {
+                                    totalClients++;
+                                  }
+
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.article,
+                                                      size: 26.0,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Total Campaigns",
+                                                        style: TextStyle(
+                                                          fontSize: 26.0,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  totalCampaigns.toString() + " campaigns",
+                                                  style: const TextStyle(
+                                                    fontSize: 36,
                                                     fontWeight: FontWeight.bold,
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            height: 20.0,
-                                          ),
-                                          Text(
-                                            totalCampaigns.toString() + " campaigns",
-                                            style: const TextStyle(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.bold,
+                                                )
+                                              ],
                                             ),
-                                          )
-                                        ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(18.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: const [
-                                              Icon(
-                                                Icons.comment,
-                                                size: 26.0,
-                                                color: Colors.red,
-                                              ),
-                                              SizedBox(
-                                                width: 15.0,
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  "Past Campaigns",
-                                                  style: TextStyle(
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.comment,
+                                                      size: 26.0,
+                                                      color: Colors.red,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Past Campaigns",
+                                                        style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 26.0,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  pastCampaigns.toString() + " campaigns",
+                                                  style: const TextStyle(
                                                     color: Colors.red,
-                                                    fontSize: 26.0,
+                                                    fontSize: 36,
                                                     fontWeight: FontWeight.bold,
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            height: 20.0,
-                                          ),
-                                          Text(
-                                            pastCampaigns.toString() + " campaigns",
-                                            style: const TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.bold,
+                                                )
+                                              ],
                                             ),
-                                          )
-                                        ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(18.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: const [
-                                              Icon(
-                                                Icons.people,
-                                                size: 26.0,
-                                                color: Colors.amber,
-                                              ),
-                                              SizedBox(
-                                                width: 15.0,
-                                              ),
-                                              Text(
-                                                "Total Clients",
-                                                style: TextStyle(
-                                                  fontSize: 26.0,
-                                                  color: Colors.amber,
-                                                  fontWeight: FontWeight.bold,
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.people,
+                                                      size: 26.0,
+                                                      color: Colors.amber,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Text(
+                                                      "Total Clients",
+                                                      style: TextStyle(
+                                                        fontSize: 26.0,
+                                                        color: Colors.amber,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    )
+                                                  ],
                                                 ),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            height: 20.0,
-                                          ),
-                                          Text(
-                                            totalClients.toString() + " Clients",
-                                            style: const TextStyle(
-                                              fontSize: 36,
-                                              color: Colors.amber,
-                                              fontWeight: FontWeight.bold,
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  totalClients.toString() + " Clients",
+                                                  style: const TextStyle(
+                                                    fontSize: 36,
+                                                    color: Colors.amber,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                )
+                                              ],
                                             ),
-                                          )
-                                        ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(18.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: const [
-                                              Icon(
-                                                Icons.monetization_on_outlined,
-                                                size: 26.0,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(
-                                                width: 15.0,
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  'Total Sales Amount (\$)',
-                                                  style: TextStyle(
-                                                    fontSize: 26.0,
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.monetization_on_outlined,
+                                                      size: 26.0,
+                                                      color: Colors.green,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'Total Sales Amount (\$)',
+                                                        style: TextStyle(
+                                                          fontSize: 26.0,
+                                                          color: Colors.green,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  '\$'+ totalEarning.toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 36,
                                                     color: Colors.green,
                                                     fontWeight: FontWeight.bold,
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            height: 20.0,
-                                          ),
-                                          Text(
-                                            '\$'+ totalEarning.toString(),
-                                            style: const TextStyle(
-                                              fontSize: 36,
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.bold,
+                                                )
+                                              ],
                                             ),
-                                          )
-                                        ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                    ],
+                                  );;
+                                }
+                              },
                             );
-                          }
-                        },
-                      ),
-
-                      // Client Counter
-                      StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('clientList')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return Text('Error = ${snapshot.error}');
-                          }
-
-                          if (!snapshot.hasData) {
-                            return const CircularProgressIndicator();
-                          } else {
-                            totalClients = 0;
-                            for (var result in snapshot.data!.docs) {
-                              totalClients++;
-                            }
-
-                            return Container();
                           }
                         },
                       ),
@@ -525,7 +523,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                         height: height * 0.05,
                       ),
 
-                      // Ongoing Campaign
+                      // Campaign & Clients
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -572,50 +570,54 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                     // Select
                                     SizedBox(
                                       width: width * 0.2,
-                                      child: DropdownButtonFormField(
-                                        items: statusList.map((status) {
-                                          return DropdownMenuItem(
-                                            value: status,
-                                            child: Text(status),
-                                          );
-                                        }).toList(),
-                                        decoration: InputDecoration(
-                                          isDense: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  width: 1.5,
-                                                  color: Colors.grey.shade300),
-                                              borderRadius:
-                                              BorderRadius.circular(10)),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.5,
-                                                color: Colors.grey.shade300),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButtonFormField(
+                                          items: statusList.map((status) {
+                                            return DropdownMenuItem(
+                                              value: status,
+                                              child: Text(status),
+                                            );
+                                          }).toList(),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            prefixIcon: Icon(Icons.campaign,color: Colors.black,),
+                                            enabledBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    width: 1.5,
+                                                    color: Colors.grey.shade300),
+                                                borderRadius: BorderRadius.circular(15)
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    width: 1.5,
+                                                    color: Colors.grey.shade300),
+                                            ),
                                           ),
-                                        ),
-                                        iconSize: 26,
-                                        dropdownColor: Colors.white,
-                                        isExpanded: true,
-                                        value: selectedStatus,
-                                        hint: const Text(
-                                          "Select campaign status",
-                                          style: TextStyle(
-                                            fontSize: 15.0,
-                                            color: Colors.black,
+                                          iconSize: 26,
+                                          dropdownColor: Colors.white,
+                                          isExpanded: true,
+                                          value: selectedStatus,
+                                          hint: const Text(
+                                            "Select campaign status",
+                                            style: TextStyle(
+                                              fontSize: 15.0,
+                                              color: Colors.black,
+                                            ),
                                           ),
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              selectedStatus = newValue;
+                                            });
+                                          },
+                                          validator: (value) {
+                                            if (value == null) {
+                                              return "Select status";
+                                            } else {
+                                              return null;
+                                            }
+                                          },
                                         ),
-                                        onChanged: (newValue) {
-                                          setState(() {
-                                            selectedStatus = newValue;
-                                          });
-                                        },
-                                        validator: (value) {
-                                          if (value == null) {
-                                            return "Select status";
-                                          } else {
-                                            return null;
-                                          }
-                                        },
                                       ),
                                     ),
 
@@ -698,10 +700,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                   for (var result in snapshot.data!.docs) {
                                     totalClients++;
                                   }
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10)),
+                                  return SizedBox(
                                     child: DropdownButtonFormField(
                                       items: snapshot.data!.docs.map((value) {
                                         return DropdownMenuItem(
@@ -710,14 +709,16 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                         );
                                       }).toList(),
                                       decoration: InputDecoration(
-                                        isDense: true,
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        prefixIcon: Icon(Icons.people_alt_rounded,color: Colors.black,),
                                         enabledBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 width: 1.5,
                                                 color: Colors.grey.shade300),
-                                            borderRadius:
-                                            BorderRadius.circular(10)),
-                                        focusedBorder: UnderlineInputBorder(
+                                            borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
                                           borderSide: BorderSide(
                                               width: 1.5,
                                               color: Colors.grey.shade300),
@@ -758,7 +759,6 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       SizedBox(
                         height: height * 0.03,
                       ),
-
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

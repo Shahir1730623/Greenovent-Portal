@@ -28,6 +28,7 @@ class _DataInputFormState extends State<DataInputForm> {
   TextEditingController budgetTextEditingController = TextEditingController();
   TextEditingController totalSpentTextEditingController = TextEditingController();
   var selectedClient;
+  String? pickedFileType;
 
   List<String> degreeList = [];
   DateTime startingDate = DateTime.now();
@@ -44,7 +45,7 @@ class _DataInputFormState extends State<DataInputForm> {
 
   Future selectFile() async {
     try{
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom,allowedExtensions: ['pdf']);
+      final result = await FilePicker.platform.pickFiles(type: FileType.custom,allowedExtensions: ['pdf','xlsx']);
       if(result == null){
         return;
       }
@@ -57,9 +58,19 @@ class _DataInputFormState extends State<DataInputForm> {
           }
       );
 
+      pickedFile = result.files.single.bytes;
+      filename = path.basename(result.files.single.name);
+      int idx = filename!.indexOf(".");
+      List parts = [filename!.substring(0,idx).trim(), filename!.substring(idx+1).trim()];
+      print(parts);
+      if(parts[1] == "pdf"){
+        pickedFileType = "pdf";
+      }
+      else{
+        pickedFileType = "excel";
+      }
+
       setState(() {
-        pickedFile = result.files.single.bytes;
-        filename = path.basename(result.files.single.name);
       });
 
       Navigator.pop(context);
@@ -625,7 +636,7 @@ class _DataInputFormState extends State<DataInputForm> {
 
                                         Expanded(
                                           child: Text(
-                                              "Upload your pdf file",
+                                              "Upload your excel/pdf file",
                                               style: GoogleFonts.montserrat(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
@@ -655,8 +666,13 @@ class _DataInputFormState extends State<DataInputForm> {
                                             width: width * 0.05,
                                             height: height * 0.15,
                                             margin: const EdgeInsets.only(right: 10),
-                                            decoration: const BoxDecoration(
-                                              image: DecorationImage(image: AssetImage('assets/pdf.png'),fit: BoxFit.fitWidth),
+                                            decoration: (pickedFileType == 'pdf') ?
+                                            const BoxDecoration(
+                                              image: DecorationImage(image: AssetImage('assets/pdf.png'),fit: BoxFit.fitWidth)
+                                            ) :
+
+                                            const BoxDecoration(
+                                                image: DecorationImage(image: AssetImage('assets/excel.png'),fit: BoxFit.fitWidth)
                                             ),
                                           ),
 
