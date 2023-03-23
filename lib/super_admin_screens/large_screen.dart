@@ -3,12 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/dashboard_screens/profile_screen_edit.dart';
+import 'package:image_network/image_network.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../app_colors.dart';
 import '../authentication_screens/login_screen.dart';
-import '../dashboard_screens/profile_screen.dart';
 import '../form/sub_admin_form.dart';
 import '../global.dart';
 import '../model/campaign_model.dart';
@@ -28,73 +28,27 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
   bool isExpanded = false;
   int selectedIndex = 0;
   var selectedClient;
+  var selectedMonth;
   String? selectedStatus;
   String? selectedFilter;
   List<CampaignDataModel> campaignList = [];
+  List<String> monthList = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   List<String> filterByList = ["Date", "Revenue"];
   List<String> statusList = ["Ongoing", "Completed"];
-  int totalEarning = 0,
-      totalClients = 0,
-      totalCampaigns = 0,
-      ongoingCampaign = 0,
+  double totalEarning = 0,
+      totalDue = 0,
+      grossProfit = 0,
       ongoingCampaignRevenue = 0,
       pastCampaignRevenue = 0,
-      pastCampaigns = 0;
+      pastCampaignGrossProfit = 0;
+
+  int totalClients = 0,
+  totalCampaigns = 0,
+  pastCampaigns = 0,
+  ongoingCampaign = 0;
 
   int? sortColumnIndex;
 
-  DateTime date = DateTime.now();
-  DateTime startingDate = DateTime.now();
-  DateTime endingDate = DateTime.now();
-
-  String? formattedStartingDate,formattedEndingDate;
-  int startingDateCounter = 0, endingDateCounter = 0;
-  bool flag = false, flag2 = false;
-
-  pickStartingDate() async {
-    DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(), //get today's date
-        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
-        lastDate: DateTime(2030)
-    );
-
-    if(pickedDate != null ){
-      setState(() {
-        startingDate = pickedDate;
-        formattedStartingDate = DateFormat('dd-MM-yyyy').format(startingDate);
-        startingDateCounter++;
-        flag = true;
-      });
-    }
-
-    else{
-      print("Date is not selected");
-    }
-
-  }
-  pickEndingDate() async {
-    DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(), //get today's date
-        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
-        lastDate: DateTime(2030)
-    );
-
-    if(pickedDate != null ){
-      setState(() {
-        endingDate = pickedDate;
-        formattedEndingDate = DateFormat('dd-MM-yyyy').format(endingDate);
-        endingDateCounter++;
-        flag2 = true;
-      });
-    }
-
-    else{
-      print("Date is not selected");
-    }
-
-  }
 
   void downloadFile(String url) {
     html.AnchorElement anchorElement = html.AnchorElement(href: url);
@@ -107,56 +61,137 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
     snapshot.docs.map((DocumentSnapshot documentSnapshot) {
       return DataRow(cells: [
         DataCell(
-          Text(documentSnapshot.data().toString().contains('campaignName')
-              ? documentSnapshot.get('campaignName')
-              : ''),
+          Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
         ),
+
         DataCell(
           SizedBox(
-            width: 300,
+            width: 200,
             child: InkWell(
               onTap: (){
                 launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
               },
-              child: Text(
-                documentSnapshot.data().toString().contains('campaignLink')
-                    ? documentSnapshot.get('campaignLink')
-                    : '',
-                overflow: TextOverflow.visible,
+              child: Text(documentSnapshot.data().toString().contains('campaignLink') ? documentSnapshot.get('campaignLink') : "",
+                overflow: TextOverflow.clip,
                 softWrap: true,
               ),
             ),
           ),
         ),
-        DataCell(Text(documentSnapshot.data().toString().contains('client')
-            ? documentSnapshot.get('client')
-            : '')),
-        DataCell(Text(documentSnapshot.data().toString().contains('budget')
-            ? documentSnapshot.get('budget')
-            : '')),
-        DataCell(Text(documentSnapshot.data().toString().contains('totalSpent')
-            ? documentSnapshot.get('totalSpent')
+
+        DataCell(Text(documentSnapshot.data().toString().contains('client') ? documentSnapshot.get('client') : "")),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('projectGoal') ? documentSnapshot.get('projectGoal').toString() : "")),
+
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('sales') ? documentSnapshot.get('sales').toString() : ""),
+          showEditIcon: true,
+          onTap: () async {
+            final updatedSales = await showTextDialog2(
+              context,
+              title: 'Change sales',
+              value: documentSnapshot.get('sales').toString(),
+            );
+
+            double sales = double.parse(updatedSales);
+            double asf = await documentSnapshot.get('ASF');
+
+            documentSnapshot.reference.update({'sales': sales});
+            documentSnapshot.reference.update({'ASF': sales * 0.1});
+            // documentSnapshot.reference.update({'subTotal': sales + asf});
+            // documentSnapshot.reference.update({'amountVAT': documentSnapshot.get('subTotal') * 0.15});
+            // documentSnapshot.reference.update({'AIT': documentSnapshot.get('subTotal') * 0.01});
+            // documentSnapshot.reference.update({'totalExpense': (int.parse(documentSnapshot.get('totalSpent')) + int.parse(documentSnapshot.get('vat')) + int.parse(documentSnapshot.get('AIT'))).toString()});
+          },
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('ASF') ? documentSnapshot.get('ASF').toString() : ""),
+          onTap: () async {
+            final asf = await showTextDialog2(
+              context,
+              title: 'Change ASF',
+              value: documentSnapshot.get('ASF').toString(),
+            );
+            if(asf!=null){
+              // documentSnapshot.reference.update({'ASF': double.parse(asf)});
+              // documentSnapshot.reference.update({'subTotal': documentSnapshot.get('sales') + documentSnapshot.get('ASF')});
+              // documentSnapshot.reference.update({'amountVAT': documentSnapshot.get('subTotal') * 0.15});
+              // documentSnapshot.reference.update({'AIT': documentSnapshot.get('subTotal') * 0.01});
+              // documentSnapshot.reference.update({'totalExpense': documentSnapshot.get('expense') + documentSnapshot.get('amountVAT') + documentSnapshot.get('AIT')});
+              // documentSnapshot.reference.update({'grossProfit': documentSnapshot.get('projectGoal') - documentSnapshot.get('totalExpense')});
+            }
+          }
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('subTotal') ? documentSnapshot.get('subTotal').toString() : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('amountVat') ? documentSnapshot.get('amountVat').toString() : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('AIT')
+            ? documentSnapshot.get('AIT').toString()
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('expense')
+            ? documentSnapshot.get('expense').toString()
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('totalExpense')
+            ? documentSnapshot.get('totalExpense').toString()
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('grossProfit')
+            ? documentSnapshot.get('grossProfit').toString()
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('billSent')
+            ? documentSnapshot.get('billSent').toString()
             : ''),
           showEditIcon: true,
           onTap: () async {
-            final total_spent = await showTextDialog2(
+            final bill_sent = await showTextDialog2(
               context,
-              title: 'Change total spent',
-              value: documentSnapshot.get('totalSpent'),
+              title: 'Change bill sent',
+              value: documentSnapshot.get('billSent'),
             );
-            if(total_spent!=null){
-              documentSnapshot.reference.update({'totalSpent': total_spent});
+            if(bill_sent!=null){
+              documentSnapshot.reference.update({'billSent': bill_sent});
             }
 
           },
         ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('billReceived')
+            ? documentSnapshot.get('billReceived').toString()
+            : ''),
+          showEditIcon: true,
+          onTap: () async {
+            final bill_received = await showTextDialog2(
+              context,
+              title: 'Change bill received',
+              value: documentSnapshot.get('billReceived'),
+            );
+            if(bill_received!=null){
+              documentSnapshot.reference.update({'billReceived': bill_received});
+            }
+
+          },
+        ),
+
         DataCell(Text(
             documentSnapshot.data().toString().contains('startingDate')
                 ? documentSnapshot.get('startingDate')
                 : '')),
+
         DataCell(Text(documentSnapshot.data().toString().contains('endingDate')
             ? documentSnapshot.get('endingDate')
             : '')),
+
         DataCell(
           SizedBox(
             width: 300,
@@ -174,6 +209,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
             ),
           ),
         ),
+
         DataCell(
           Text(documentSnapshot.data().toString().contains('status')
               ? documentSnapshot.get('status')
@@ -191,6 +227,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
 
           },
         ),
+
         DataCell(const Icon(Icons.delete), onTap: () {
           showDialog(
             //show confirm dialogue
@@ -316,6 +353,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
         ),
         Expanded(
             child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
               child: Padding(
                 padding: const EdgeInsets.all(60),
                 child: Column(
@@ -349,14 +387,27 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
 
                           if (!snapshot.hasData) {
                             return const CircularProgressIndicator();
-                          } else {
+                          }
+
+                          else {
                             totalEarning = 0;
+                            totalDue = 0;
+                            grossProfit = 0;
                             ongoingCampaign = 0;
                             pastCampaigns = 0;
                             totalCampaigns = 0;
+                            double totalSent = 0, totalReceived = 0;
                             for (var result in snapshot.data!.docs) {
-                              totalEarning += int.parse(result.data()['budget']);
+                              totalEarning += (result.data()['projectGoal']);
+                              totalSent += (result.data()['billSent']);
+                              if(result.data()['billReceived'] > 0){
+                                totalReceived += (result.data()['billReceived']);
+                              }
+
+                              totalDue += (totalSent - totalReceived);
+                              grossProfit += (result.data()['grossProfit']);
                               totalCampaigns++;
+
                               if (result.data()['status'] == "Ongoing") {
                                 ongoingCampaign++;
                               }
@@ -407,7 +458,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       child: Text(
                                                         "Total Campaigns",
                                                         style: TextStyle(
-                                                          fontSize: 26.0,
+                                                          fontSize: 22.0,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
@@ -420,7 +471,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   totalCampaigns.toString() + " campaigns",
                                                   style: const TextStyle(
-                                                    fontSize: 36,
+                                                    fontSize: 32,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 )
@@ -449,10 +500,10 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                     ),
                                                     Expanded(
                                                       child: Text(
-                                                        "Past Campaigns",
+                                                        "Ongoing Campaigns",
                                                         style: TextStyle(
                                                           color: Colors.red,
-                                                          fontSize: 26.0,
+                                                          fontSize: 20.0,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
@@ -463,10 +514,10 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  pastCampaigns.toString() + " campaigns",
+                                                  ongoingCampaign.toString() + " campaigns",
                                                   style: const TextStyle(
                                                     color: Colors.red,
-                                                    fontSize: 36,
+                                                    fontSize: 32,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 )
@@ -496,7 +547,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                     Text(
                                                       "Total Clients",
                                                       style: TextStyle(
-                                                        fontSize: 26.0,
+                                                        fontSize: 22.0,
                                                         color: Colors.amber,
                                                         fontWeight: FontWeight.bold,
                                                       ),
@@ -509,7 +560,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   totalClients.toString() + " Clients",
                                                   style: const TextStyle(
-                                                    fontSize: 36,
+                                                    fontSize: 32,
                                                     color: Colors.amber,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -539,9 +590,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                     ),
                                                     Expanded(
                                                       child: Text(
-                                                        'Total Sales Amount (\$)',
+                                                        'Total Earning (৳)',
                                                         style: TextStyle(
-                                                          fontSize: 26.0,
+                                                          fontSize: 20.0,
                                                           color: Colors.green,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -553,9 +604,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  '\$'+ totalEarning.toString(),
+                                                  '৳'+ totalEarning.toString(),
                                                   style: const TextStyle(
-                                                    fontSize: 36,
+                                                    fontSize: 30,
                                                     color: Colors.green,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -565,8 +616,100 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                           ),
                                         ),
                                       ),
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.monetization_on_outlined,
+                                                      size: 26.0,
+                                                      color: Colors.red,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'Total Due (৳)',
+                                                        style: TextStyle(
+                                                          fontSize: 20.0,
+                                                          color: Colors.red,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  '৳'+ totalDue.toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 30,
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Flexible(
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(18.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.monetization_on_outlined,
+                                                      size: 26.0,
+                                                      color: Colors.purple,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 15.0,
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'Gross profit (৳)',
+                                                        style: TextStyle(
+                                                          fontSize: 20.0,
+                                                          color: Colors.purple,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 20.0,
+                                                ),
+                                                Text(
+                                                  '৳'+ grossProfit.toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 30,
+                                                    color: Colors.purple,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
-                                  );;
+                                  );
                                 }
                               },
                             );
@@ -601,11 +744,12 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                 for (var result in snapshot.data!.docs) {
                                   if (result.data()['status'] == "Ongoing") {
                                     ongoingCampaign++;
-                                    ongoingCampaignRevenue += int.parse(result.data()['budget']);
+                                    ongoingCampaignRevenue += (result.data()['projectGoal']);
                                   }
 
                                   else if(result.data()['status'] == "Completed"){
-                                    pastCampaignRevenue += int.parse(result.data()['budget']);
+                                    pastCampaignRevenue += (result.data()['projectGoal']);
+                                    pastCampaignGrossProfit += (result.data()['grossProfit']);
                                   }
 
                                 }
@@ -707,18 +851,30 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "Number of Campaigns: $pastCampaigns",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20.0,
-                                          ),
-                                        ),
+                                       Text(
+                                         "Number of Campaigns: $pastCampaigns",
+                                         style: const TextStyle(
+                                           fontWeight: FontWeight.bold,
+                                           fontSize: 20.0,
+                                         ),
+                                       ),
+                                       const SizedBox(
+                                         height: 20.0,
+                                       ),
+                                       Text(
+                                         "Earning: ৳$pastCampaignRevenue",
+                                         style: const TextStyle(
+                                             color: Colors.grey,
+                                             fontSize: 18.0,
+                                             fontWeight: FontWeight.w400),
+                                       ),
+
                                         const SizedBox(
                                           height: 20.0,
                                         ),
+
                                         Text(
-                                          "Earning: ৳$pastCampaignRevenue",
+                                          "Gross Profit: ৳$grossProfit",
                                           style: const TextStyle(
                                               color: Colors.grey,
                                               fontSize: 18.0,
@@ -923,72 +1079,60 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                             ],
                           ),
 
-                          // Start & End Date
-                          Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                height: 50,
-                                width: width * 0.15,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    pickStartingDate();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    primary: (Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
-                                  ),
+                          SizedBox(
+                            width: width * 0.3,
+                            child: DropdownButtonFormField(
+                              items: monthList.map((month) {
+                                return DropdownMenuItem(
+                                  value: month,
                                   child: Text(
-                                    (startingDateCounter != 0) ? formattedStartingDate! : "Select starting date",
-                                    style: GoogleFonts.montserrat(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black
-                                    ),
+                                    month,
+                                    style: const TextStyle(color: Colors.black),
                                   ),
+                                );
+                              }).toList(),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(Icons.calendar_month_outlined,color: Colors.black,),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        width: 1.5,
+                                        color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(15)
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      width: 1.5,
+                                      color: Colors.grey.shade300),
                                 ),
                               ),
-                              SizedBox(width: width * 0.01),
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                height: 50,
-                                width: width * 0.15,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    pickEndingDate();
-                                    // DocumentSnapshot<Map<String, dynamic>> snap;
-                                    // num = snapshot.data.docs.length;
-                                    // for(int i = 0;i < num; i++){
-                                    // snap = snapshot.data.docs[i];
-                                    // timestamp = snap.data()!['date'];
-                                    // if(snap.data()!["clients"] == clientsDropdownvalue
-                                    // && timestamp.seconds >= Timestamp.fromDate(startDate).seconds
-                                    // && timestamp.seconds <= Timestamp.fromDate(endDate).seconds
-                                    // && snap.data()!['amount_status'] == 'Due'
-                                    // )
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    primary: (Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
-                                  ),
-                                  child: Text(
-                                    (endingDateCounter != 0) ? formattedEndingDate! : "Select ending date",
-                                    style: GoogleFonts.montserrat(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black
-                                    ),
-                                  ),
+                              iconSize: 26,
+                              dropdownColor: Colors.white,
+                              isExpanded: true,
+                              value: selectedMonth,
+                              hint: const Text(
+                                "Select a month",
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  color: Colors.black,
                                 ),
                               ),
-                            ],
+                              onChanged: (newValue) {
+                                setState(() {
+                                  selectedMonth = newValue;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return "Select a month";
+                                } else {
+                                  return null;
+                                }
+                              },
+                            ),
                           ),
+
 
                         ],
                       ),
@@ -1002,7 +1146,10 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           StreamBuilder(
-                            stream: FirebaseFirestore.instance.collection('campaignData').where('client', isEqualTo: selectedClient).snapshots(),
+                            stream: FirebaseFirestore.instance.collection('campaignData')
+                                .where('client', isEqualTo: selectedClient)
+                                .where('month', isEqualTo: selectedMonth)
+                                .snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
                                 return Text('Error = ${snapshot.error}');
@@ -1013,44 +1160,39 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                     child: CircularProgressIndicator());
                               }
 
-                              return StreamBuilder(
-                                stream: FirebaseFirestore.instance.collection('campaignData').where('client', isEqualTo: selectedClient).snapshots(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasError) {
-                                    return Text('Error = ${snapshot.error}');
-                                  }
+                              else{
+                                return SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                      sortColumnIndex: sortColumnIndex,
+                                      headingRowColor: MaterialStateProperty.resolveWith(
+                                              (states) => Colors.grey.shade200),
+                                      columns: const [
+                                        DataColumn(label: Text("Campaign Name")),
+                                        DataColumn(label: Text("Post Link")),
+                                        DataColumn(label: Text("Client")),
+                                        DataColumn(label: Text("Project Goal")),
+                                        DataColumn(label: Text("Sales")),
+                                        DataColumn(label: Text("ASF")),
+                                        DataColumn(label: Text("Subtotal")),
+                                        DataColumn(label: Text("Amount Vat")),
+                                        DataColumn(label: Text("AIT")),
+                                        DataColumn(label: Text("Expense")),
+                                        DataColumn(label: Text("Total Expense")),
+                                        DataColumn(label: Text("Gross Profit")),
+                                        DataColumn(label: Text("Bill Sent")),
+                                        DataColumn(label: Text("Bill Received")),
+                                        DataColumn(label: Text("Starting Date")),
+                                        DataColumn(label: Text("Ending Date")),
+                                        DataColumn(label: Text("File")),
+                                        DataColumn(label: Text("Status")),
+                                        DataColumn(label: Text("")),
+                                      ],
+                                      rows: _createRows(snapshot.data!),
+                                    )
+                                );
+                              }
 
-                                  if (!snapshot.hasData) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  }
-
-                                  else{
-                                    return SingleChildScrollView(
-                                        child: FittedBox(
-                                          child: DataTable(
-                                            sortColumnIndex: sortColumnIndex,
-                                            headingRowColor: MaterialStateProperty.resolveWith(
-                                                    (states) => Colors.grey.shade200),
-                                            columns: const [
-                                              DataColumn(label: Text("Campaign Name")),
-                                              DataColumn(label: Text("Post Link")),
-                                              DataColumn(label: Text("Client Name")),
-                                              DataColumn(label: Text("Budget (\$)")),
-                                              DataColumn(label: Text("Total spent (\$)")),
-                                              DataColumn(label: Text("Starting Date")),
-                                              DataColumn(label: Text("Ending Date")),
-                                              DataColumn(label: Text("PDF File")),
-                                              DataColumn(label: Text("Status")),
-                                              DataColumn(label: Text("")),
-                                            ],
-                                            rows: _createRows(snapshot.data!),
-                                          ),
-                                        )
-                                    );
-                                  }
-                                },
-                              );
                             },
                           ),
                         ],

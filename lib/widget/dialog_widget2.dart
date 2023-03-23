@@ -44,14 +44,14 @@ class _TextDialogWidgetState extends State<TextDialogWidget> {
       controller: controller,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
-        hintText: (widget.title == "Change total spent") ? "Spent amount" : 'Client name',
+        hintText: (widget.title == "Change sales") ? "Spent amount" : 'Client name',
       ),
     ),
     actions: [
       ElevatedButton(
         child: Text('Done'),
         onPressed: () {
-          var snackBar = SnackBar(content: (widget.title == "Change total spent") ? Text('Amount added') : Text('Client added'));
+          var snackBar = SnackBar(content: (widget.title == "Change sales") ? Text('Amount added') : Text('Client added'));
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
           Navigator.of(context).pop(controller.text);
         },

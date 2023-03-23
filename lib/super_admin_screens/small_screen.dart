@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../form/sub_admin_form.dart';
 import '../model/campaign_model.dart';
@@ -17,13 +18,14 @@ class SmallScreenWidget extends StatefulWidget {
 
 class _SmallScreenWidgetState extends State<SmallScreenWidget> {
   TextEditingController clientAddController = TextEditingController();
-
   bool isExpanded = false;
   int selectedIndex = 0;
   var selectedClient;
+  var selectedMonth;
   String? selectedStatus;
   String? selectedFilter;
   List<CampaignDataModel> campaignList = [];
+  List<String> monthList = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   List<String> filterByList = ["Date", "Revenue"];
   List<String> statusList = ["Ongoing", "Completed"];
   int totalEarning = 0,
@@ -53,12 +55,17 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
         DataCell(
           SizedBox(
             width: 300,
-            child: Text(
-              documentSnapshot.data().toString().contains('campaignLink')
-                  ? documentSnapshot.get('campaignLink')
-                  : '',
-              overflow: TextOverflow.visible,
-              softWrap: true,
+            child: InkWell(
+              onTap: (){
+                launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
+              },
+              child: Text(
+                documentSnapshot.data().toString().contains('campaignLink')
+                    ? documentSnapshot.get('campaignLink')
+                    : '',
+                overflow: TextOverflow.visible,
+                softWrap: true,
+              ),
             ),
           ),
         ),
@@ -80,10 +87,28 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
             );
             if(total_spent!=null){
               documentSnapshot.reference.update({'totalSpent': total_spent});
+              documentSnapshot.reference.update({'netProfit': (int.parse(documentSnapshot.get('budget')) - int.parse(total_spent)).toString()});
             }
 
           },
         ),
+        DataCell(Text(documentSnapshot.data().toString().contains('netProfit')
+            ? documentSnapshot.get('netProfit')
+            : ''),
+          showEditIcon: true,
+          onTap: () async {
+            final total_spent = await showTextDialog2(
+              context,
+              title: 'Change total spent',
+              value: documentSnapshot.get('totalSpent'),
+            );
+            if(total_spent!=null){
+              documentSnapshot.reference.update({'totalSpent': total_spent});
+            }
+
+          },
+        ),
+
         DataCell(Text(
             documentSnapshot.data().toString().contains('startingDate')
                 ? documentSnapshot.get('startingDate')

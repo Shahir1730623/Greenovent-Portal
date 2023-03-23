@@ -25,8 +25,11 @@ class _DataInputFormState extends State<DataInputForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController campaignNameTextEditingController = TextEditingController();
   TextEditingController campaignLinkTextEditingController = TextEditingController();
-  TextEditingController budgetTextEditingController = TextEditingController();
-  TextEditingController totalSpentTextEditingController = TextEditingController();
+  TextEditingController projectGoalTextEditingController = TextEditingController();
+  TextEditingController salesTextEditingController = TextEditingController();
+  TextEditingController expenseTextEditingController = TextEditingController();
+  TextEditingController billSentTextEditingController = TextEditingController();
+  TextEditingController billReceivedTextEditingController = TextEditingController();
   var selectedClient;
   String? pickedFileType;
 
@@ -158,14 +161,30 @@ class _DataInputFormState extends State<DataInputForm> {
   }
 
   saveDataToDatabase(){
+    double ASF = double.parse(salesTextEditingController.text.trim()) * 0.10;
+    print(ASF);
+    double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
+    double amountVat = subTotal * 0.15;
+    double AIT = subTotal * 0.01;
+
     Map<String,dynamic> data = {
-      'campaignName' : campaignNameTextEditingController.text,
-      'campaignLink' : campaignLinkTextEditingController.text,
+      'campaignName' : campaignNameTextEditingController.text.trim(),
+      'campaignLink' : campaignLinkTextEditingController.text.trim(),
       'client' : selectedClient.toString(),
-      'budget' : budgetTextEditingController.text,
-      'totalSpent' : totalSpentTextEditingController.text,
+      'projectGoal' : double.parse(projectGoalTextEditingController.text.trim()),
+      'sales' : double.parse(salesTextEditingController.text.trim()),
+      'ASF' :  ASF,
+      'subTotal' :  subTotal,
+      'amountVat' : amountVat,
+      'AIT' : AIT,
+      'expense' : double.parse(expenseTextEditingController.text.trim()),
+      'totalExpense' : double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT,
+      'grossProfit' : double.parse(projectGoalTextEditingController.text.trim()) - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT),
+      'billSent' : double.parse(billSentTextEditingController.text.trim()),
+      'billReceived' : double.parse(billReceivedTextEditingController.text.trim()),
       'startingDate' : formattedStartingDate,
       'endingDate' : formattedEndingDate,
+      'month' : DateFormat.MMMM().format(startingDate),
       'pdfLink' : pdfFileUrl,
       'status' : "Ongoing"
     };
@@ -178,8 +197,9 @@ class _DataInputFormState extends State<DataInputForm> {
     });
     campaignNameTextEditingController.clear();
     campaignLinkTextEditingController.clear();
-    budgetTextEditingController.clear();
-    totalSpentTextEditingController.clear();
+    projectGoalTextEditingController.clear();
+    salesTextEditingController.clear();
+    expenseTextEditingController.clear();
     var snackBar = const SnackBar(content: Text('Data uploaded successfully'));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
@@ -252,364 +272,563 @@ class _DataInputFormState extends State<DataInputForm> {
                               SizedBox(height: height * 0.05),
 
                               // Campaign Name
-                              Text(
-                                'Campaign Name',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              TextFormField(
-                                controller: campaignNameTextEditingController,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  hintText: "Campaign Name",
-                                  suffixIcon: campaignNameTextEditingController.text.isEmpty
-                                      ? Container(width: 0)
-                                      : IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () =>
-                                        campaignNameTextEditingController.clear(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Campaign Name',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(10.0),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    controller: campaignNameTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      hintText: "Campaign Name",
+                                      suffixIcon: campaignNameTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            campaignNameTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
                                   ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
-                                  hintStyle:
-                                  const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                  labelStyle:
-                                  const TextStyle(
-                                      color: AppColors.blueDarkColor, fontSize: 15),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                              ),
+                                  SizedBox(height: height * 0.025),
 
-                              SizedBox(height: height * 0.025),
+                                ],
+                              ),
 
                               // Campaign Link
-                              Text(
-                                'Campaign Link',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              TextFormField(
-                                controller: campaignLinkTextEditingController,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  hintText: "Campaign Link",
-                                  suffixIcon: campaignLinkTextEditingController.text.isEmpty
-                                      ? Container(width: 0)
-                                      : IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () =>
-                                        campaignLinkTextEditingController.clear(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Post Link',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(10.0),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    controller: campaignLinkTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      hintText: "Post Link",
+                                      suffixIcon: campaignLinkTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            campaignLinkTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
                                   ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
-                                  hintStyle:
-                                  const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                  labelStyle:
-                                  const TextStyle(
-                                      color: AppColors.blueDarkColor, fontSize: 15),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                              ),
+                                  SizedBox(height: height * 0.025),
 
-                              SizedBox(height: height * 0.025),
+                                ],
+                              ),
 
                               // Client Name
-                              Text(
-                                'Client',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              StreamBuilder(
-                                stream: FirebaseFirestore.instance.collection('clientList').snapshots(),
-                                builder: (context, snapshot){
-                                  if (snapshot.hasError) return Text('Error = ${snapshot.error}');
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Client',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  StreamBuilder(
+                                    stream: FirebaseFirestore.instance.collection('clientList').snapshots(),
+                                    builder: (context, snapshot){
+                                      if (snapshot.hasError) return Text('Error = ${snapshot.error}');
 
-                                  if (!snapshot.hasData) {
-                                    return const Center(child: CircularProgressIndicator());
-                                  }
+                                      if (!snapshot.hasData) {
+                                        return const Center(child: CircularProgressIndicator());
+                                      }
 
-                                  else{
-                                    //selectedClient = snapshot.data!.docs[0].get('name');
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      child: DropdownButtonFormField(
-                                        items: snapshot.data!.docs.map((value) {
-                                          return DropdownMenuItem(
-                                            value: value.get('name'),
-                                            child: Text('${value.get('name')}'),
-                                          );
-                                        }).toList(),
-                                        decoration:  InputDecoration(
-                                          isDense: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
+                                      else{
+                                        //selectedClient = snapshot.data!.docs[0].get('name');
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
                                               borderRadius: BorderRadius.circular(10)
                                           ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
-                                          ),
-                                        ) ,
-                                        iconSize: 26,
-                                        dropdownColor: Colors.white,
-                                        isExpanded: true,
-                                        value: selectedClient,
-                                        hint: const Text(
-                                          "Select a client",
-                                          style: TextStyle(
-                                            fontSize: 15.0,
-                                            color: AppColors.blueDarkColor,
-                                          ),
-                                        ),
-                                        onChanged: (newValue)
-                                        {
-                                          setState(() {
-                                            selectedClient = newValue;
-                                          });
+                                          child: DropdownButtonFormField(
+                                            items: snapshot.data!.docs.map((value) {
+                                              return DropdownMenuItem(
+                                                value: value.get('name'),
+                                                child: Text('${value.get('name')}'),
+                                              );
+                                            }).toList(),
+                                            decoration:  InputDecoration(
+                                              isDense: true,
+                                              enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
+                                                  borderRadius: BorderRadius.circular(10)
+                                              ),
+                                              focusedBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
+                                              ),
+                                            ) ,
+                                            iconSize: 26,
+                                            dropdownColor: Colors.white,
+                                            isExpanded: true,
+                                            value: selectedClient,
+                                            hint: const Text(
+                                              "Select a client",
+                                              style: TextStyle(
+                                                fontSize: 15.0,
+                                                color: AppColors.blueDarkColor,
+                                              ),
+                                            ),
+                                            onChanged: (newValue)
+                                            {
+                                              setState(() {
+                                                selectedClient = newValue;
+                                              });
 
-                                        },
+                                            },
 
-                                        validator: (value){
-                                          if(value == null){
-                                            return "Select a client";
-                                          }
-                                          else{
-                                            return null;
-                                          }
-                                        },
+                                            validator: (value){
+                                              if(value == null){
+                                                return "Select a client";
+                                              }
+                                              else{
+                                                return null;
+                                              }
+                                            },
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
+                              ),
+
+                              // Project Goal
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Project Goal',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: projectGoalTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Project Goal",
+                                      suffixIcon: projectGoalTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            projectGoalTextEditingController.clear(),
                                       ),
-                                    );
-                                  }
-                                },
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+
+                                ],
                               ),
 
-                              SizedBox(height: height * 0.025),
-
-                              // Budget
-                              Text(
-                                'Budget',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              TextFormField(
-                                keyboardType: TextInputType.number,
-                                controller: budgetTextEditingController,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  labelText: "Budget",
-                                  suffixIcon: budgetTextEditingController.text.isEmpty
-                                      ? Container(width: 0)
-                                      : IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () =>
-                                        budgetTextEditingController.clear(),
+                              // Sales
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Sales',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(10.0),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: salesTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Sales",
+                                      suffixIcon: salesTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            salesTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
                                   ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
-                                  hintStyle:
-                                  const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                  labelStyle:
-                                  const TextStyle(
-                                      color: AppColors.blueDarkColor, fontSize: 15),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                              ),
-
-                              SizedBox(height: height * 0.025),
-
-                              // Budget
-                              Text(
-                                'Total Spent',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              TextFormField(
-                                keyboardType: TextInputType.number,
-                                controller: totalSpentTextEditingController,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  labelText: "Total spent",
-                                  suffixIcon: totalSpentTextEditingController.text.isEmpty
-                                      ? Container(width: 0)
-                                      : IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () =>
-                                        totalSpentTextEditingController.clear(),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
-                                  hintStyle:
-                                  const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                  labelStyle:
-                                  const TextStyle(
-                                      color: AppColors.blueDarkColor, fontSize: 15),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  } else {
-                                    return null;
-                                  }
-                                },
+                                  SizedBox(height: height * 0.025),
+                                ],
                               ),
 
-                              SizedBox(height: height * 0.025),
+                              // Expense
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Expense',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: expenseTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Expense",
+                                      suffixIcon: expenseTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            expenseTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
+                              ),
+
+                              // Bill sent
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Bill sent',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: billSentTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Bill sent",
+                                      suffixIcon: billSentTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            billSentTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
+                              ),
+
+                              // Bill received
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Bill received',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: billReceivedTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Bill received",
+                                      suffixIcon: billReceivedTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            billReceivedTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
+                              ),
 
                               // Select starting date
-                              Text(
-                                'Starting Date',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(width: 30.0),
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                height: 50,
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    pickStartingDate();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    primary: (Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
-                                  ),
-                                  child: Text(
-                                    (startingDateCounter != 0) ? formattedStartingDate! : "Select starting date",
-                                    style: GoogleFonts.montserrat(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Starting Date',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(width: 30.0),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey.shade300,width: 1.5),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    height: 50,
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        pickStartingDate();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        primary: (Colors.white),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                      ),
+                                      child: Text(
+                                        (startingDateCounter != 0) ? formattedStartingDate! : "Select starting date",
+                                        style: GoogleFonts.montserrat(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
                               ),
-
-                              SizedBox(height: height * 0.025),
 
                               // Select ending date
-                              Text(
-                                'Ending Date',
-                                style: GoogleFonts.raleway(
-                                  fontSize: 12.0,
-                                  color: AppColors.blueDarkColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300,width: 1.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                height: 50,
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    pickEndingDate();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    primary: (Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
-                                  ),
-                                  child: Text(
-                                    (endingDateCounter != 0) ? formattedEndingDate! : "Select ending date",
-                                    style: GoogleFonts.montserrat(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Ending Date',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(height: 6.0),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey.shade300,width: 1.5),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    height: 50,
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        pickEndingDate();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        primary: (Colors.white),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                      ),
+                                      child: Text(
+                                        (endingDateCounter != 0) ? formattedEndingDate! : "Select ending date",
+                                        style: GoogleFonts.montserrat(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: height * 0.02),
+                                ],
                               ),
-
-                              SizedBox(height: height * 0.02),
 
                               // File Picker
                               GestureDetector(

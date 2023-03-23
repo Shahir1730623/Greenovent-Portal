@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:greenovent_portal/loading_screen.dart';
 
-import 'Testing/test.dart';
 import 'assistant_method.dart';
 
 import 'authentication_screens/login_screen.dart';

@@ -41,6 +41,7 @@ dependencies:
   firebase_core:
   firebase_database:
   firebase_auth:
+  firebase_auth_web: ^5.2.9
   cloud_firestore:
   firebase_storage:
   intl:
@@ -53,7 +54,6 @@ dependencies:
   image_network:
   dropdown_button2:
   url_launcher:
-  spreadsheet_decoder: ^2.2.0
 
 dev_dependencies:
   flutter_test:
