@@ -1,12 +1,9 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/authentication_screens/login_screen.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import '../app_colors.dart';
 import '../global.dart';
 import '../widget/responsive_layout.dart';
@@ -43,8 +40,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         }
     );
 
-    firebase_storage.Reference reference = firebase_storage.FirebaseStorage.instance.ref('userImage/dummy-image.png');
-    var imageUrl = await reference.getDownloadURL();
     
     try{
       await firebaseAuth.createUserWithEmailAndPassword(
@@ -57,14 +52,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'name' : nameTextEditingController.text,
         "email" : emailTextEditingController.text,
         "phone" : "+88${phoneNumberTextEditingController.text}",
-        "userType" : selectedUserType,
-        'imageUrl' : imageUrl
+        "userPosition" : selectedUserType,
+        "userType" : (selectedUserType == "Digital Head" || selectedUserType == "Executive Director"),
         };
+
         FirebaseFirestore.instance.collection('users').doc(currentFirebaseUser!.uid).set(data);
         nameTextEditingController.clear();
         emailTextEditingController.clear();
         passwordTextEditingController.clear();
         phoneNumberTextEditingController.clear();
+
         setState(() {
           selectedUserType = null;
         });
@@ -104,7 +101,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  (ResponsiveWidget.isSmallScreen(context)) ? const SizedBox() : (ResponsiveWidget.isMediumScreen(context)) ? SizedBox() : Expanded(
+                  (ResponsiveWidget.isSmallScreen(context)) ? const SizedBox() : (ResponsiveWidget.isMediumScreen(context)) ? const SizedBox() : Expanded(
                     child: Container(
                       height: height,
                       color: AppColors.mainBlueColor,

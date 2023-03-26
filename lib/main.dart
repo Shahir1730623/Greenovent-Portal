@@ -1,18 +1,11 @@
 import 'dart:async';
-
+import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:greenovent_portal/loading_screen.dart';
 
-import 'assistant_method.dart';
-
-import 'authentication_screens/login_screen.dart';
-import 'dashboard_screens/sub_admin_dashboard.dart';
-import 'dashboard_screens/super_admin_dashboard.dart';
-import 'form/sub_admin_form.dart';
-import 'global.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,16 +37,6 @@ class _MyAppState extends State<MyApp> {
   late StreamSubscription<User?> user;
   void initState() {
     super.initState();
-    // user = firebaseAuth.authStateChanges().listen((user) async {
-    //   if (user == null) {
-    //     print('User is currently signed out!');
-    //   }
-    //   else{
-    //     print('User is signed in!');
-    //     await AssistantMethods.readCurrentOnlineUserInfo();
-    //   }
-    //
-    // });
   }
 
 // This widget is the root of your application.
@@ -64,12 +47,20 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      //supportedLocales: L10n.all,
-      home: LoadingScreen(),
-      //builder: (context,child) => unFocus(child: child!),
-      //home: LoginScreen(),
+      home: const LoadingScreen(),
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       //navigatorKey: NavigationService.navigatorKey,
     );
   }
+}
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior{
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
+
 }

@@ -6,24 +6,15 @@ class UserModel{
   String? name;
   String? email;
   String? phone;
-  String? imageUrl;
+  String? userType;
   String? userPosition;
 
-  UserModel({
-    this.id,
-    this.name,
-    this.email,
-    this.phone,
-    this.userPosition,
-    this.imageUrl
-  });
-
   UserModel.fromSnapshot(DocumentSnapshot<Map<String,dynamic>> documentSnapshot){
-    id = documentSnapshot.data()!["id"];
-    name = documentSnapshot.data()!["name"];
-    email = documentSnapshot.data()!["email"];
-    phone = documentSnapshot.data()!["phone"];
-    imageUrl = documentSnapshot.data()!["imageUrl"];
-    userPosition = documentSnapshot.data()!["userType"];
+    id = documentSnapshot.get('id');
+    name = documentSnapshot.get('name');
+    email = documentSnapshot.get('email');
+    phone = documentSnapshot.get('phone');
+    userType = documentSnapshot.get('userType');
+    userPosition = documentSnapshot.get('userPosition');
   }
 }

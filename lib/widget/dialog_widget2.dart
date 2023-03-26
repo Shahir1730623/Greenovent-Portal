@@ -33,7 +33,6 @@ class _TextDialogWidgetState extends State<TextDialogWidget> {
   @override
   void initState() {
     super.initState();
-
     controller = TextEditingController(text: widget.value);
   }
 
@@ -44,14 +43,14 @@ class _TextDialogWidgetState extends State<TextDialogWidget> {
       controller: controller,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
-        hintText: (widget.title == "Change sales") ? "Spent amount" : 'Client name',
+        hintText: (widget.title == "Add Client") ? 'Client name' : 'Amount',
       ),
     ),
     actions: [
       ElevatedButton(
-        child: Text('Done'),
+        child: const Text('Done'),
         onPressed: () {
-          var snackBar = SnackBar(content: (widget.title == "Change sales") ? Text('Amount added') : Text('Client added'));
+          var snackBar = SnackBar(content: (widget.title == "Add Client") ? const Text('Client added') : const Text('Amount added'));
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
           Navigator.of(context).pop(controller.text);
         },

@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/authentication_screens/login_screen.dart';
-import 'package:greenovent_portal/dashboard_screens/sub_admin_dashboard.dart';
 import 'package:greenovent_portal/dashboard_screens/super_admin_dashboard.dart';
 import 'app_colors.dart';
 import 'assistant_method.dart';
@@ -24,7 +22,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
     user = firebaseAuth.authStateChanges().listen((user) async {
       if (user == null) {
         print('User is currently signed out!');
-      } else {
+      }
+
+      else {
         print('User is signed in!');
         await AssistantMethods.readCurrentOnlineUserInfo();
       }
@@ -32,19 +32,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     Timer(const Duration(seconds: 3), () async {
       if (await firebaseAuth.currentUser != null) {
-        if (currentUserInfo!.userPosition == "Executive Director" || currentUserInfo!.userPosition == "Developer") {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SuperAdminDashboard()));
-          print("Redirected to super admin dashboard");
-        }
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SuperAdminDashboard()));
+      }
 
-        else {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SubAdminDashboard()));
-          print("Redirected to sub admin dashboard");
-        }
-      } else {
+      else {
         // send User to login screen
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const LoginScreen()));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginScreen()));
       }
     });
   }
@@ -59,7 +52,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
     return Material(
       child: Container(
         height: height,

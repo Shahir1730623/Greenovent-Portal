@@ -3,17 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/dashboard_screens/profile_screen_edit.dart';
-import 'package:image_network/image_network.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../app_colors.dart';
 import '../authentication_screens/login_screen.dart';
 import '../form/sub_admin_form.dart';
 import '../global.dart';
-import '../model/campaign_model.dart';
 import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget2.dart';
+import '../widget/dialog_widget_add_client.dart';
 
 class LargeScreenWidget extends StatefulWidget {
   const LargeScreenWidget({Key? key}) : super(key: key);
@@ -25,13 +23,14 @@ class LargeScreenWidget extends StatefulWidget {
 class _LargeScreenWidgetState extends State<LargeScreenWidget> {
   //setting the expansion function for the navigation rail
   TextEditingController clientAddController = TextEditingController();
+  TextEditingController searchTextEditingController = TextEditingController();
   bool isExpanded = false;
   int selectedIndex = 0;
+  var search;
   var selectedClient;
   var selectedMonth;
   String? selectedStatus;
   String? selectedFilter;
-  List<CampaignDataModel> campaignList = [];
   List<String> monthList = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   List<String> filterByList = ["Date", "Revenue"];
   List<String> statusList = ["Ongoing", "Completed"];
@@ -40,7 +39,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
       grossProfit = 0,
       ongoingCampaignRevenue = 0,
       pastCampaignRevenue = 0,
-      pastCampaignGrossProfit = 0;
+      pastCampaignGrossProfit = 0,
+      totalSent = 0,
+      totalReceived = 0;
 
   int totalClients = 0,
   totalCampaigns = 0,
@@ -48,7 +49,6 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
   ongoingCampaign = 0;
 
   int? sortColumnIndex;
-
 
   void downloadFile(String url) {
     html.AnchorElement anchorElement = html.AnchorElement(href: url);
@@ -60,6 +60,10 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
     List<DataRow> newList =
     snapshot.docs.map((DocumentSnapshot documentSnapshot) {
       return DataRow(cells: [
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('billNo') ? documentSnapshot.get('billNo') : ""),
+        ),
+
         DataCell(
           Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
         ),
@@ -79,12 +83,16 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
           ),
         ),
 
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('description') ? documentSnapshot.get('description') : ""),
+        ),
+
         DataCell(Text(documentSnapshot.data().toString().contains('client') ? documentSnapshot.get('client') : "")),
 
-        DataCell(Text(documentSnapshot.data().toString().contains('projectGoal') ? documentSnapshot.get('projectGoal').toString() : "")),
+        DataCell(Text(documentSnapshot.data().toString().contains('projectGoal') ? documentSnapshot.get('projectGoal').toStringAsFixed(0) : "")),
 
         DataCell(
-          Text(documentSnapshot.data().toString().contains('sales') ? documentSnapshot.get('sales').toString() : ""),
+          Text(documentSnapshot.data().toString().contains('sales') ? documentSnapshot.get('sales').toStringAsFixed(0) : ""),
           showEditIcon: true,
           onTap: () async {
             final updatedSales = await showTextDialog2(
@@ -93,91 +101,124 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
               value: documentSnapshot.get('sales').toString(),
             );
 
-            double sales = double.parse(updatedSales);
-            double asf = await documentSnapshot.get('ASF');
+            if(updatedSales != null){
+              double sales = double.parse(updatedSales);
+              double ASF = sales * 0.1;
+              double subTotal = sales + ASF;
+              double amountVat = subTotal * 0.05;
+              double AIT = subTotal * (documentSnapshot.get('AITPercentage') / 100);
+              double totalExpense = documentSnapshot.get('expense') + amountVat + AIT;
+              double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
 
-            documentSnapshot.reference.update({'sales': sales});
-            documentSnapshot.reference.update({'ASF': sales * 0.1});
-            // documentSnapshot.reference.update({'subTotal': sales + asf});
-            // documentSnapshot.reference.update({'amountVAT': documentSnapshot.get('subTotal') * 0.15});
-            // documentSnapshot.reference.update({'AIT': documentSnapshot.get('subTotal') * 0.01});
-            // documentSnapshot.reference.update({'totalExpense': (int.parse(documentSnapshot.get('totalSpent')) + int.parse(documentSnapshot.get('vat')) + int.parse(documentSnapshot.get('AIT'))).toString()});
+              documentSnapshot.reference.update({'sales': sales});
+              documentSnapshot.reference.update({'ASF': ASF});
+              documentSnapshot.reference.update({'subTotal': subTotal});
+              documentSnapshot.reference.update({'amountVat': amountVat});
+              documentSnapshot.reference.update({'AIT': AIT});
+              documentSnapshot.reference.update({'totalExpense' : totalExpense});
+              documentSnapshot.reference.update({'grossProfit' : grossProfit});
+            }
           },
         ),
 
-        DataCell(Text(documentSnapshot.data().toString().contains('ASF') ? documentSnapshot.get('ASF').toString() : ""),
-          onTap: () async {
-            final asf = await showTextDialog2(
-              context,
-              title: 'Change ASF',
-              value: documentSnapshot.get('ASF').toString(),
-            );
-            if(asf!=null){
-              // documentSnapshot.reference.update({'ASF': double.parse(asf)});
-              // documentSnapshot.reference.update({'subTotal': documentSnapshot.get('sales') + documentSnapshot.get('ASF')});
-              // documentSnapshot.reference.update({'amountVAT': documentSnapshot.get('subTotal') * 0.15});
-              // documentSnapshot.reference.update({'AIT': documentSnapshot.get('subTotal') * 0.01});
-              // documentSnapshot.reference.update({'totalExpense': documentSnapshot.get('expense') + documentSnapshot.get('amountVAT') + documentSnapshot.get('AIT')});
-              // documentSnapshot.reference.update({'grossProfit': documentSnapshot.get('projectGoal') - documentSnapshot.get('totalExpense')});
-            }
-          }
+        DataCell(Text(documentSnapshot.data().toString().contains('ASF') ? documentSnapshot.get('ASF').toStringAsFixed(0) : ""),
         ),
 
-        DataCell(Text(documentSnapshot.data().toString().contains('subTotal') ? documentSnapshot.get('subTotal').toString() : ""),
+        DataCell(Text(documentSnapshot.data().toString().contains('subTotal') ? documentSnapshot.get('subTotal').toStringAsFixed(0) : ""),
         ),
 
-        DataCell(Text(documentSnapshot.data().toString().contains('amountVat') ? documentSnapshot.get('amountVat').toString() : ""),
+        DataCell(Text(documentSnapshot.data().toString().contains('amountVat') ? documentSnapshot.get('amountVat').toStringAsFixed(0) : ""),
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('AIT')
-            ? documentSnapshot.get('AIT').toString()
+            ? documentSnapshot.get('AIT').toStringAsFixed(0)
             : ''),
+          showEditIcon: true,
+          onTap: () async {
+            final updatedAIT = await showTextDialog2(
+              context,
+              title: 'Change AIT',
+              value: documentSnapshot.get('AIT').toString(),
+            );
+
+            if(updatedAIT != null){
+              double AIT = double.parse(updatedAIT);
+              double totalExpense = documentSnapshot.get('expense') + documentSnapshot.get('amountVat') + AIT;
+              double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+
+              documentSnapshot.reference.update({'AIT': AIT});
+              documentSnapshot.reference.update({'totalExpense' : totalExpense});
+              documentSnapshot.reference.update({'grossProfit' : grossProfit});
+            }
+
+          },
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('expense')
-            ? documentSnapshot.get('expense').toString()
+            ? documentSnapshot.get('expense').toStringAsFixed(0)
             : ''),
+
+            showEditIcon: true,
+            onTap: () async {
+              final updatedExpense = await showTextDialog2(
+                context,
+                title: 'Change expense',
+                value: documentSnapshot.get('expense').toString(),
+              );
+
+              if(updatedExpense != null){
+                double expense = double.parse(updatedExpense);
+                double totalExpense = expense + documentSnapshot.get('amountVat') + documentSnapshot.get('AIT');
+                double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+
+                documentSnapshot.reference.update({'expense': expense});
+                documentSnapshot.reference.update({'totalExpense' : totalExpense});
+                documentSnapshot.reference.update({'grossProfit' : grossProfit});
+              }
+
+            }
+
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('totalExpense')
-            ? documentSnapshot.get('totalExpense').toString()
+            ? documentSnapshot.get('totalExpense').toStringAsFixed(0)
             : ''),
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('grossProfit')
-            ? documentSnapshot.get('grossProfit').toString()
+            ? documentSnapshot.get('grossProfit').toStringAsFixed(0)
             : ''),
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('billSent')
-            ? documentSnapshot.get('billSent').toString()
+            ? documentSnapshot.get('billSent').toStringAsFixed(0)
             : ''),
           showEditIcon: true,
           onTap: () async {
-            final bill_sent = await showTextDialog2(
+            final billSent = await showTextDialog2(
               context,
               title: 'Change bill sent',
-              value: documentSnapshot.get('billSent'),
+              value: documentSnapshot.get('billSent').toString(),
             );
-            if(bill_sent!=null){
-              documentSnapshot.reference.update({'billSent': bill_sent});
+            if(billSent!=null){
+              documentSnapshot.reference.update({'billSent': double.parse(billSent)});
             }
 
           },
         ),
 
         DataCell(Text(documentSnapshot.data().toString().contains('billReceived')
-            ? documentSnapshot.get('billReceived').toString()
+            ? documentSnapshot.get('billReceived').toStringAsFixed(0)
             : ''),
           showEditIcon: true,
           onTap: () async {
-            final bill_received = await showTextDialog2(
+            final billReceived = await showTextDialog2(
               context,
               title: 'Change bill received',
-              value: documentSnapshot.get('billReceived'),
+              value: documentSnapshot.get('billReceived').toString(),
             );
-            if(bill_received!=null){
-              documentSnapshot.reference.update({'billReceived': bill_received});
+            if(billReceived!=null){
+              documentSnapshot.reference.update({'billReceived': double.parse(billReceived)});
             }
 
           },
@@ -360,6 +401,8 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text('Size:' + width.toString()),
+
                       // Icon button and Circle Avatar
                       IconButton(
                         onPressed: () {
@@ -379,6 +422,8 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       StreamBuilder(
                         stream: FirebaseFirestore.instance
                             .collection('campaignData')
+                            .where('client', isEqualTo: selectedClient)
+                            .where('month', isEqualTo: selectedMonth)
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
@@ -396,15 +441,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                             ongoingCampaign = 0;
                             pastCampaigns = 0;
                             totalCampaigns = 0;
-                            double totalSent = 0, totalReceived = 0;
                             for (var result in snapshot.data!.docs) {
                               totalEarning += (result.data()['projectGoal']);
-                              totalSent += (result.data()['billSent']);
-                              if(result.data()['billReceived'] > 0){
-                                totalReceived += (result.data()['billReceived']);
-                              }
-
-                              totalDue += (totalSent - totalReceived);
+                              totalDue += ((result.data()['billSent']) - (result.data()['billReceived']));
                               grossProfit += (result.data()['grossProfit']);
                               totalCampaigns++;
 
@@ -417,10 +456,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                             }
 
                             return StreamBuilder(
-                              stream: FirebaseFirestore.instance
-                                  .collection('clientList')
-                                  .snapshots(),
-
+                              stream: FirebaseFirestore.instance.collection('clientList').snapshots(),
                               builder: (context, snapshot){
                                 if (snapshot.hasError) {
                                   return Text('Error = ${snapshot.error}');
@@ -428,7 +464,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
 
                                 if (!snapshot.hasData) {
                                   return const CircularProgressIndicator();
-                                } else {
+                                }
+
+                                else {
                                   totalClients = 0;
                                   for (var result in snapshot.data!.docs) {
                                     totalClients++;
@@ -604,7 +642,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  '৳'+ totalEarning.toString(),
+                                                  '৳${totalEarning.toStringAsFixed(2)}',
                                                   style: const TextStyle(
                                                     fontSize: 30,
                                                     color: Colors.green,
@@ -650,7 +688,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  '৳'+ totalDue.toString(),
+                                                  '৳${totalDue.toStringAsFixed(2)}',
                                                   style: const TextStyle(
                                                     fontSize: 30,
                                                     color: Colors.red,
@@ -696,7 +734,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  '৳'+ grossProfit.toString(),
+                                                  '৳${grossProfit.toStringAsFixed(2)}',
                                                   style: const TextStyle(
                                                     fontSize: 30,
                                                     color: Colors.purple,
@@ -721,175 +759,186 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                         height: height * 0.05,
                       ),
 
-                      // Campaign & Clients
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Ongoing campaign
-                          StreamBuilder(
-                            stream: FirebaseFirestore.instance
-                                .collection('campaignData')
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return Container(
-                                    alignment: FractionalOffset.center,
-                                    child: const CircularProgressIndicator());
+                      // Campaign Status
+                      StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('campaignData')
+                            .where('client', isEqualTo: selectedClient)
+                            .where('month', isEqualTo: selectedMonth)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Container(
+                                alignment: FractionalOffset.center,
+                                child: const CircularProgressIndicator());
+                          }
+
+                          else {
+                            ongoingCampaign = 0;
+                            pastCampaignRevenue = 0;
+                            ongoingCampaignRevenue = 0;
+                            pastCampaignGrossProfit = 0;
+                            for (var result in snapshot.data!.docs) {
+                              if (result.data()['status'] == "Ongoing") {
+                                ongoingCampaign++;
+                                ongoingCampaignRevenue += (result.data()['projectGoal']);
                               }
 
-                              else {
-                                ongoingCampaign = 0;
-                                pastCampaignRevenue = 0;
-                                ongoingCampaignRevenue = 0;
-                                for (var result in snapshot.data!.docs) {
-                                  if (result.data()['status'] == "Ongoing") {
-                                    ongoingCampaign++;
-                                    ongoingCampaignRevenue += (result.data()['projectGoal']);
-                                  }
+                              else if(result.data()['status'] == "Completed"){
+                                pastCampaignRevenue += (result.data()['projectGoal']);
+                                pastCampaignGrossProfit += (result.data()['grossProfit']);
+                              }
 
-                                  else if(result.data()['status'] == "Completed"){
-                                    pastCampaignRevenue += (result.data()['projectGoal']);
-                                    pastCampaignGrossProfit += (result.data()['grossProfit']);
-                                  }
+                            }
 
-                                }
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Campaign",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 35.0,
-                                      ),
-                                    ),
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Campaign",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 35.0,
+                                  ),
+                                ),
 
-                                    const SizedBox(height: 10,),
+                                const SizedBox(height: 10,),
 
-                                    // Select
-                                    SizedBox(
-                                      width: width * 0.2,
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButtonFormField(
-                                          items: statusList.map((status) {
-                                            return DropdownMenuItem(
-                                              value: status,
-                                              child: Text(status),
-                                            );
-                                          }).toList(),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            prefixIcon: Icon(Icons.campaign,color: Colors.black,),
-                                            enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    width: 1.5,
-                                                    color: Colors.grey.shade300),
-                                                borderRadius: BorderRadius.circular(15)
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    width: 1.5,
-                                                    color: Colors.grey.shade300),
-                                            ),
-                                          ),
-                                          iconSize: 26,
-                                          dropdownColor: Colors.white,
-                                          isExpanded: true,
-                                          value: selectedStatus,
-                                          hint: const Text(
-                                            "Select campaign status",
-                                            style: TextStyle(
-                                              fontSize: 15.0,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              selectedStatus = newValue;
-                                            });
-                                          },
-                                          validator: (value) {
-                                            if (value == null) {
-                                              return "Select status";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
+                                // Select Status
+                                SizedBox(
+                                  width: width * 0.2,
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButtonFormField(
+                                      items: statusList.map((status) {
+                                        return DropdownMenuItem(
+                                          value: status,
+                                          child: Text(status),
+                                        );
+                                      }).toList(),
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        prefixIcon: const Icon(Icons.campaign,color: Colors.black,),
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                width: 1.5,
+                                                color: Colors.grey.shade300),
+                                            borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              width: 1.5,
+                                              color: Colors.grey.shade300),
                                         ),
                                       ),
+                                      iconSize: 26,
+                                      dropdownColor: Colors.white,
+                                      isExpanded: true,
+                                      value: selectedStatus,
+                                      hint: const Text(
+                                        "Select campaign status",
+                                        style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          selectedStatus = newValue;
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null) {
+                                          return "Select status";
+                                        } else {
+                                          return null;
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(
+                                  height: 20.0,
+                                ),
+
+                                (selectedStatus == "Ongoing") ?
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Number of Campaigns: $ongoingCampaign",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20.0,
+                                    ),
+                                    Text(
+                                      "Earning: ৳$ongoingCampaignRevenue",
+                                      style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w400),
+                                    ),
+                                  ],
+                                ) :
+
+                                (selectedStatus == "Completed") ?
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Number of Campaigns: $pastCampaigns",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20.0,
+                                    ),
+
+                                    Text(
+                                      "Earning: ৳$pastCampaignRevenue",
+                                      style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w400),
                                     ),
 
                                     const SizedBox(
                                       height: 20.0,
                                     ),
 
-                                    (selectedStatus == "Ongoing") ?
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Number of Campaigns: $ongoingCampaign",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20.0,
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-                                        Text(
-                                          "Earning: ৳$ongoingCampaignRevenue",
-                                          style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ],
-                                    ) :
-                                    (selectedStatus == "Completed") ?
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                       Text(
-                                         "Number of Campaigns: $pastCampaigns",
-                                         style: const TextStyle(
-                                           fontWeight: FontWeight.bold,
-                                           fontSize: 20.0,
-                                         ),
-                                       ),
-                                       const SizedBox(
-                                         height: 20.0,
-                                       ),
-                                       Text(
-                                         "Earning: ৳$pastCampaignRevenue",
-                                         style: const TextStyle(
-                                             color: Colors.grey,
-                                             fontSize: 18.0,
-                                             fontWeight: FontWeight.w400),
-                                       ),
-
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-
-                                        Text(
-                                          "Gross Profit: ৳$grossProfit",
-                                          style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ],
-                                    ) :
-                                    Container()
+                                    Text(
+                                      "Gross Profit: ৳$pastCampaignGrossProfit",
+                                      style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w400),
+                                    ),
                                   ],
-                                );
-                              }
-                            },
-                          ),
+                                ) :
+                                Container()
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+                      SizedBox(
+                        height: height * 0.02,
+                      ),
+
+                      // Filter Options
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
                           SizedBox(
-                            width: width * 0.3,
+                            width: width * 0.2,
                             child: StreamBuilder(
                               stream: FirebaseFirestore.instance
                                   .collection('clientList')
@@ -963,124 +1012,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                 }
                               },
                             ),
-                          ),
-                        ],
-                      ),
-
-
-                      SizedBox(
-                        height: height * 0.03,
-                      ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Add Campaign,Add Client, Delete Client
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: width * 0.11,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const DataInputForm()));
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Add Campaign Data",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: width * 0.01,
-                              ),
-                              SizedBox(
-                                width: width * 0.11,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    final status = await showTextDialog2(
-                                      context,
-                                      title: 'Add client',
-                                      value: '',
-                                    );
-                                    if (status != null) {
-                                      Map<String, dynamic> data = {'name': status};
-                                      FirebaseFirestore.instance
-                                          .collection('clientList')
-                                          .doc(idGenerator())
-                                          .set(data);
-                                    }
-                                    setState(() {
-                                    });
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Add Client",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: width * 0.01,
-                              ),
-                              SizedBox(
-                                width: width * 0.11,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    final status = await showTextDialog(
-                                      context,
-                                      title: 'Delete client',
-                                      value: '',
-                                    );
-
-                                    if (status != null) {
-                                      var snackBar = const SnackBar(
-                                          content: Text('Client deleted'));
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(snackBar);
-                                      var snapshot = await FirebaseFirestore.instance
-                                          .collection('clientList')
-                                          .where('name', isEqualTo: status)
-                                          .get();
-                                      await snapshot.docs.first.reference.delete();
-                                    }
-                                    setState(() {});
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Delete Client",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
+                          ),   // Select Month
                           SizedBox(
-                            width: width * 0.3,
+                            width: width * 0.2,
                             child: DropdownButtonFormField(
                               items: monthList.map((month) {
                                 return DropdownMenuItem(
@@ -1094,7 +1028,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
-                                prefixIcon: Icon(Icons.calendar_month_outlined,color: Colors.black,),
+                                prefixIcon: const Icon(Icons.calendar_month_outlined,color: Colors.black,),
                                 enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
                                         width: 1.5,
@@ -1131,11 +1065,266 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                 }
                               },
                             ),
-                          ),
+                          ),  // Select Client
+                          SizedBox(
+                            width: width * 0.2,
+                            child: TextFormField(
+                              controller: searchTextEditingController,
+                              onChanged: (textTyped) {
+                                setState(() {
+                                  search = textTyped;
+                                });
+                              },
 
+                              decoration: InputDecoration(
+                                  prefixIcon: const Icon(Icons.search,color: Colors.black,),
+                                  hintText: "Search by Bill No",
+                                  suffixStyle: const TextStyle(color: Colors.black),
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  suffixIcon: searchTextEditingController.text.isEmpty ?
+                                  Container(width: 0) : IconButton(
+                                    icon: const Icon(Icons.close,color: Colors.black,),
+                                    onPressed: () {
+                                      searchTextEditingController.clear();
+                                      search = null;
+                                      setState(() {
+                                      });
+                                    },
+                                  ),
+                                  enabledBorder:OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          width: 1.5,
+                                          color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
 
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          width: 1.5,
+                                          color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  contentPadding: const EdgeInsets.all(15)),
+
+                            ),
+                          ), // Search bar
                         ],
                       ),
+
+                      SizedBox(
+                        height: height * 0.03,
+                      ),
+
+                      // Add Campaign Data
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                         (currentUserInfo?.userType == "Super Admin") ?
+                         Row(
+                           children: [
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   Navigator.push(
+                                       context,
+                                       MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Add Campaign Data",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                             SizedBox(
+                               width: width * 0.01,
+                             ),
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   showDialog(
+                                       context: context,
+                                       builder: (context){
+                                         return AddClientDialog(title: "Add Client");
+                                       }
+                                   );
+
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Add Client",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                             SizedBox(
+                               width: width * 0.01,
+                             ),
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   selectedClient = null;
+                                   final status = await showTextDialog(
+                                     context,
+                                     title: 'Delete client',
+                                     value: '',
+                                   );
+
+                                   if (status != null) {
+                                     var snackBar = const SnackBar(
+                                         content: Text('Client deleted'));
+                                     ScaffoldMessenger.of(context)
+                                         .showSnackBar(snackBar);
+                                     var snapshot = await FirebaseFirestore.instance
+                                         .collection('clientList')
+                                         .where('name', isEqualTo: status)
+                                         .get();
+                                     await snapshot.docs.first.reference.delete();
+                                   }
+                                   setState(() {});
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Delete Client",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                             SizedBox(
+                               width: width * 0.01,
+                             ),
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   selectedClient = null;
+                                   showDialog(
+                                       context: context,
+                                       builder: (context){
+                                         return AddClientDialog(title: "Change AIT");
+                                       }
+                                   );
+
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Change AIT",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ) :
+
+                         Row(
+                           children: [
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   Navigator.push(
+                                       context,
+                                       MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Add Campaign Data",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                             SizedBox(
+                               width: width * 0.01,
+                             ),
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   selectedClient = null;
+                                   showDialog(
+                                       context: context,
+                                       builder: (context){
+                                         return AddClientDialog(title: "Change AIT");
+                                       }
+                                   );
+
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Change AIT",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ),
+
+                         InkWell(
+                            onTap: (){
+                              search = null;
+                              selectedClient = null;
+                              selectedMonth = null;
+                              selectedStatus = null;
+                              searchTextEditingController.clear();
+                              setState(() {
+
+                              });
+                            },
+                            child: Column(
+                              children: const [
+                                Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+
 
                       SizedBox(
                         height: height * 0.02,
@@ -1149,6 +1338,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                             stream: FirebaseFirestore.instance.collection('campaignData')
                                 .where('client', isEqualTo: selectedClient)
                                 .where('month', isEqualTo: selectedMonth)
+                                .where('billNo', isEqualTo: search)
                                 .snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
@@ -1161,35 +1351,41 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                               }
 
                               else{
-                                return SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: DataTable(
-                                      sortColumnIndex: sortColumnIndex,
-                                      headingRowColor: MaterialStateProperty.resolveWith(
-                                              (states) => Colors.grey.shade200),
-                                      columns: const [
-                                        DataColumn(label: Text("Campaign Name")),
-                                        DataColumn(label: Text("Post Link")),
-                                        DataColumn(label: Text("Client")),
-                                        DataColumn(label: Text("Project Goal")),
-                                        DataColumn(label: Text("Sales")),
-                                        DataColumn(label: Text("ASF")),
-                                        DataColumn(label: Text("Subtotal")),
-                                        DataColumn(label: Text("Amount Vat")),
-                                        DataColumn(label: Text("AIT")),
-                                        DataColumn(label: Text("Expense")),
-                                        DataColumn(label: Text("Total Expense")),
-                                        DataColumn(label: Text("Gross Profit")),
-                                        DataColumn(label: Text("Bill Sent")),
-                                        DataColumn(label: Text("Bill Received")),
-                                        DataColumn(label: Text("Starting Date")),
-                                        DataColumn(label: Text("Ending Date")),
-                                        DataColumn(label: Text("File")),
-                                        DataColumn(label: Text("Status")),
-                                        DataColumn(label: Text("")),
-                                      ],
-                                      rows: _createRows(snapshot.data!),
-                                    )
+                                return SizedBox(
+                                  height: height,
+                                  child: InteractiveViewer(
+                                      constrained : false,
+                                      scaleEnabled: false,
+                                      child: DataTable(
+                                        sortColumnIndex: sortColumnIndex,
+                                        headingRowColor: MaterialStateProperty.resolveWith(
+                                                (states) => Colors.grey.shade200),
+                                        columns: const [
+                                          DataColumn(label: Text("Bill No")),
+                                          DataColumn(label: Text("Campaign Name")),
+                                          DataColumn(label: Text("Post Link")),
+                                          DataColumn(label: Text("Description")),
+                                          DataColumn(label: Text("Client")),
+                                          DataColumn(label: Text("Project Goal")),
+                                          DataColumn(label: Text("Sales")),
+                                          DataColumn(label: Text("ASF")),
+                                          DataColumn(label: Text("Subtotal")),
+                                          DataColumn(label: Text("Amount Vat")),
+                                          DataColumn(label: Text("AIT")),
+                                          DataColumn(label: Text("Expense")),
+                                          DataColumn(label: Text("Total Expense")),
+                                          DataColumn(label: Text("Gross Profit")),
+                                          DataColumn(label: Text("Bill Sent")),
+                                          DataColumn(label: Text("Bill Received")),
+                                          DataColumn(label: Text("Starting Date")),
+                                          DataColumn(label: Text("Ending Date")),
+                                          DataColumn(label: Text("File")),
+                                          DataColumn(label: Text("Status")),
+                                          DataColumn(label: Text("")),
+                                        ],
+                                        rows: _createRows(snapshot.data!),
+                                      )
+                                  ),
                                 );
                               }
 

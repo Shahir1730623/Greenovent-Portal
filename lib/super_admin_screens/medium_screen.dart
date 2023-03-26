@@ -6,9 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../form/sub_admin_form.dart';
-import '../model/campaign_model.dart';
+import '../global.dart';
 import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget2.dart';
+import '../widget/dialog_widget_add_client.dart';
 
 class MediumScreenWidget extends StatefulWidget {
   const MediumScreenWidget({Key? key}) : super(key: key);
@@ -20,23 +21,30 @@ class MediumScreenWidget extends StatefulWidget {
 class _MediumScreenWidgetState extends State<MediumScreenWidget> {
   //setting the expansion function for the navigation rail
   TextEditingController clientAddController = TextEditingController();
+  TextEditingController searchTextEditingController = TextEditingController();
   bool isExpanded = false;
   int selectedIndex = 0;
+  var search;
   var selectedClient;
   var selectedMonth;
   String? selectedStatus;
   String? selectedFilter;
-  List<CampaignDataModel> campaignList = [];
   List<String> monthList = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   List<String> filterByList = ["Date", "Revenue"];
   List<String> statusList = ["Ongoing", "Completed"];
-  int totalEarning = 0,
-      totalClients = 0,
-      totalCampaigns = 0,
-      ongoingCampaign = 0,
+  double totalEarning = 0,
+      totalDue = 0,
+      grossProfit = 0,
       ongoingCampaignRevenue = 0,
       pastCampaignRevenue = 0,
-      pastCampaigns = 0;
+      pastCampaignGrossProfit = 0,
+      totalSent = 0,
+      totalReceived = 0;
+
+  int totalClients = 0,
+      totalCampaigns = 0,
+      pastCampaigns = 0,
+      ongoingCampaign = 0;
 
   int? sortColumnIndex;
 
@@ -52,62 +60,164 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
     snapshot.docs.map((DocumentSnapshot documentSnapshot) {
       return DataRow(cells: [
         DataCell(
-          Text(documentSnapshot.data().toString().contains('campaignName')
-              ? documentSnapshot.get('campaignName')
-              : ''),
+          Text(documentSnapshot.data().toString().contains('billNo') ? documentSnapshot.get('billNo') : ""),
         ),
+
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
+        ),
+
         DataCell(
           SizedBox(
-            width: 300,
+            width: 200,
             child: InkWell(
               onTap: (){
                 launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
               },
-              child: Text(
-                documentSnapshot.data().toString().contains('campaignLink')
-                    ? documentSnapshot.get('campaignLink')
-                    : '',
-                overflow: TextOverflow.visible,
+              child: Text(documentSnapshot.data().toString().contains('campaignLink') ? documentSnapshot.get('campaignLink') : "",
+                overflow: TextOverflow.clip,
                 softWrap: true,
               ),
             ),
           ),
         ),
-        DataCell(Text(documentSnapshot.data().toString().contains('client')
-            ? documentSnapshot.get('client')
-            : '')),
-        DataCell(Text(documentSnapshot.data().toString().contains('budget')
-            ? documentSnapshot.get('budget')
-            : '')),
-        DataCell(Text(documentSnapshot.data().toString().contains('totalSpent')
-            ? documentSnapshot.get('totalSpent')
+
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('description') ? documentSnapshot.get('description') : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('client') ? documentSnapshot.get('client') : "")),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('projectGoal') ? documentSnapshot.get('projectGoal').toStringAsFixed(0) : "")),
+
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('sales') ? documentSnapshot.get('sales').toStringAsFixed(0) : ""),
+          showEditIcon: true,
+          onTap: () async {
+            final updatedSales = await showTextDialog2(
+              context,
+              title: 'Change sales',
+              value: documentSnapshot.get('sales').toString(),
+            );
+
+            if(updatedSales != null){
+              double sales = double.parse(updatedSales);
+              double ASF = sales * 0.1;
+              double subTotal = sales + ASF;
+              double amountVat = subTotal * 0.05;
+              double AIT = subTotal * (documentSnapshot.get('AITPercentage') / 100);
+              double totalExpense = documentSnapshot.get('expense') + amountVat + AIT;
+              double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+
+              documentSnapshot.reference.update({'sales': sales});
+              documentSnapshot.reference.update({'ASF': ASF});
+              documentSnapshot.reference.update({'subTotal': subTotal});
+              documentSnapshot.reference.update({'amountVat': amountVat});
+              documentSnapshot.reference.update({'AIT': AIT});
+              documentSnapshot.reference.update({'totalExpense' : totalExpense});
+              documentSnapshot.reference.update({'grossProfit' : grossProfit});
+            }
+          },
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('ASF') ? documentSnapshot.get('ASF').toStringAsFixed(0) : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('subTotal') ? documentSnapshot.get('subTotal').toStringAsFixed(0) : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('amountVat') ? documentSnapshot.get('amountVat').toStringAsFixed(0) : ""),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('AIT')
+            ? documentSnapshot.get('AIT').toStringAsFixed(0)
             : ''),
           showEditIcon: true,
           onTap: () async {
-            final total_spent = await showTextDialog2(
+            final updatedAIT = await showTextDialog2(
               context,
-              title: 'Change total spent',
-              value: documentSnapshot.get('totalSpent'),
+              title: 'Change AIT',
+              value: documentSnapshot.get('AIT').toString(),
             );
-            if(total_spent!=null){
-              documentSnapshot.reference.update({'totalSpent': total_spent});
-              documentSnapshot.reference.update({'netProfit': (int.parse(documentSnapshot.get('budget')) - int.parse(total_spent)).toString()});
+
+            if(updatedAIT != null){
+              double AIT = double.parse(updatedAIT);
+              double totalExpense = documentSnapshot.get('expense') + documentSnapshot.get('amountVat') + AIT;
+              double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+
+              documentSnapshot.reference.update({'AIT': AIT});
+              documentSnapshot.reference.update({'totalExpense' : totalExpense});
+              documentSnapshot.reference.update({'grossProfit' : grossProfit});
             }
 
           },
         ),
-        DataCell(Text(documentSnapshot.data().toString().contains('netProfit')
-            ? documentSnapshot.get('netProfit')
+
+        DataCell(Text(documentSnapshot.data().toString().contains('expense')
+            ? documentSnapshot.get('expense').toStringAsFixed(0)
+            : ''),
+
+            showEditIcon: true,
+            onTap: () async {
+              final updatedExpense = await showTextDialog2(
+                context,
+                title: 'Change expense',
+                value: documentSnapshot.get('expense').toString(),
+              );
+
+              if(updatedExpense != null){
+                double expense = double.parse(updatedExpense);
+                double totalExpense = expense + documentSnapshot.get('amountVat') + documentSnapshot.get('AIT');
+                double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+
+                documentSnapshot.reference.update({'expense': expense});
+                documentSnapshot.reference.update({'totalExpense' : totalExpense});
+                documentSnapshot.reference.update({'grossProfit' : grossProfit});
+              }
+
+            }
+
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('totalExpense')
+            ? documentSnapshot.get('totalExpense').toStringAsFixed(0)
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('grossProfit')
+            ? documentSnapshot.get('grossProfit').toStringAsFixed(0)
+            : ''),
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('billSent')
+            ? documentSnapshot.get('billSent').toStringAsFixed(0)
             : ''),
           showEditIcon: true,
           onTap: () async {
-            final total_spent = await showTextDialog2(
+            final billSent = await showTextDialog2(
               context,
-              title: 'Change total spent',
-              value: documentSnapshot.get('totalSpent'),
+              title: 'Change bill sent',
+              value: documentSnapshot.get('billSent').toString(),
             );
-            if(total_spent!=null){
-              documentSnapshot.reference.update({'totalSpent': total_spent});
+            if(billSent!=null){
+              documentSnapshot.reference.update({'billSent': double.parse(billSent)});
+            }
+
+          },
+        ),
+
+        DataCell(Text(documentSnapshot.data().toString().contains('billReceived')
+            ? documentSnapshot.get('billReceived').toStringAsFixed(0)
+            : ''),
+          showEditIcon: true,
+          onTap: () async {
+            final billReceived = await showTextDialog2(
+              context,
+              title: 'Change bill received',
+              value: documentSnapshot.get('billReceived').toString(),
+            );
+            if(billReceived!=null){
+              documentSnapshot.reference.update({'billReceived': double.parse(billReceived)});
             }
 
           },
@@ -117,9 +227,11 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
             documentSnapshot.data().toString().contains('startingDate')
                 ? documentSnapshot.get('startingDate')
                 : '')),
+
         DataCell(Text(documentSnapshot.data().toString().contains('endingDate')
             ? documentSnapshot.get('endingDate')
             : '')),
+
         DataCell(
           SizedBox(
             width: 300,
@@ -137,6 +249,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
             ),
           ),
         ),
+
         DataCell(
           Text(documentSnapshot.data().toString().contains('status')
               ? documentSnapshot.get('status')
@@ -154,6 +267,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
 
           },
         ),
+
         DataCell(const Icon(Icons.delete), onTap: () {
           showDialog(
             //show confirm dialogue
@@ -209,7 +323,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Icon button and Circle Avatar
+                      Text('Size:' + width.toString()),
 
                       const SizedBox(
                         height: 20.0,
@@ -219,6 +333,8 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                       StreamBuilder(
                         stream: FirebaseFirestore.instance
                             .collection('campaignData')
+                            .where('client', isEqualTo: selectedClient)
+                            .where('month', isEqualTo: selectedMonth)
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
@@ -229,221 +345,320 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                             return CircularProgressIndicator();
                           } else {
                             totalEarning = 0;
+                            totalDue = 0;
+                            grossProfit = 0;
                             ongoingCampaign = 0;
                             pastCampaigns = 0;
                             totalCampaigns = 0;
                             for (var result in snapshot.data!.docs) {
-                              totalEarning += int.parse(result.data()['budget']);
+                              totalEarning += (result.data()['projectGoal']);
+                              totalDue += ((result.data()['billSent']) - (result.data()['billReceived']));
+                              grossProfit += (result.data()['grossProfit']);
                               totalCampaigns++;
+
                               if (result.data()['status'] == "Ongoing") {
                                 ongoingCampaign++;
-                              } else {
+                              }
+                              else {
                                 pastCampaigns++;
                               }
                             }
 
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: const [
-                                            Icon(
-                                              Icons.article,
-                                              size: 26.0,
-                                            ),
-                                            SizedBox(
-                                              width: 15.0,
-                                            ),
-                                            Text(
-                                              "Total Campaigns",
-                                              style: TextStyle(
-                                                fontSize: 26.0,
-                                                fontWeight: FontWeight.bold,
+                            return StreamBuilder(
+                              stream: FirebaseFirestore.instance.collection('clientList').snapshots(),
+                              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                                if (snapshot.hasError) {
+                                  return Text('Error = ${snapshot.error}');
+                                }
+
+                                if (!snapshot.hasData) {
+                                  return const CircularProgressIndicator();
+                                }
+
+                                else{
+                                  totalClients = 0;
+                                  for (var result in snapshot.data!.docs) {
+                                    totalClients++;
+                                  }
+
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.article,
+                                                    size: 26.0,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Total Campaigns",
+                                                    style: TextStyle(
+                                                      fontSize: 26.0,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-                                        Text(
-                                          totalCampaigns.toString() + " campaigns",
-                                          style: const TextStyle(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: height * 0.02,
-                                ),
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: const [
-                                            Icon(
-                                              Icons.comment,
-                                              size: 26.0,
-                                              color: Colors.red,
-                                            ),
-                                            SizedBox(
-                                              width: 15.0,
-                                            ),
-                                            Text(
-                                              "Past Campaigns",
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 26.0,
-                                                fontWeight: FontWeight.bold,
+                                              const SizedBox(
+                                                height: 20.0,
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-                                        Text(
-                                          pastCampaigns.toString() + " campaigns",
-                                          style: const TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.bold,
+                                              Text(
+                                                totalCampaigns.toString() + " campaigns",
+                                                style: const TextStyle(
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
                                           ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: height * 0.02,
-                                ),
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: const [
-                                            Icon(
-                                              Icons.people,
-                                              size: 26.0,
-                                              color: Colors.amber,
-                                            ),
-                                            SizedBox(
-                                              width: 15.0,
-                                            ),
-                                            Text(
-                                              "Total Clients",
-                                              style: TextStyle(
-                                                fontSize: 26.0,
-                                                color: Colors.amber,
-                                                fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      SizedBox(
+                                        height: height * 0.02,
+                                      ),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.comment,
+                                                    size: 26.0,
+                                                    color: Colors.red,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Ongoing Campaigns",
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: 26.0,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-                                        Text(
-                                          totalClients.toString() + " Clients",
-                                          style: const TextStyle(
-                                            fontSize: 36,
-                                            color: Colors.amber,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: height * 0.02,
-                                ),
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: const [
-                                            Icon(
-                                              Icons.monetization_on_outlined,
-                                              size: 26.0,
-                                              color: Colors.green,
-                                            ),
-                                            SizedBox(
-                                              width: 15.0,
-                                            ),
-                                            Text(
-                                              "Revenue",
-                                              style: TextStyle(
-                                                fontSize: 26.0,
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.bold,
+                                              const SizedBox(
+                                                height: 20.0,
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 20.0,
-                                        ),
-                                        Text(
-                                          "৳" + totalEarning.toString(),
-                                          style: const TextStyle(
-                                            fontSize: 36,
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold,
+                                              Text(
+                                                "$ongoingCampaign campaigns",
+                                                style: const TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
                                           ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                        ),
+                                      ),
+
+                                      SizedBox(
+                                        height: height * 0.02,
+                                      ),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.people,
+                                                    size: 26.0,
+                                                    color: Colors.amber,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Total Clients",
+                                                    style: TextStyle(
+                                                      fontSize: 26.0,
+                                                      color: Colors.amber,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 20.0,
+                                              ),
+                                              Text(
+                                                totalClients.toString() + " Clients",
+                                                style: const TextStyle(
+                                                  fontSize: 36,
+                                                  color: Colors.amber,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      SizedBox(
+                                        height: height * 0.02,
+                                      ),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.monetization_on_outlined,
+                                                    size: 26.0,
+                                                    color: Colors.green,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Total Earning (৳)",
+                                                    style: TextStyle(
+                                                      fontSize: 26.0,
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 20.0,
+                                              ),
+                                              Text(
+                                                '৳${totalEarning.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontSize: 36,
+                                                  color: Colors.green,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      SizedBox(
+                                        height: height * 0.02,
+                                      ),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.monetization_on_outlined,
+                                                    size: 26.0,
+                                                    color: Colors.red,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Total Due (৳)",
+                                                    style: TextStyle(
+                                                      fontSize: 26.0,
+                                                      color: Colors.red,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 20.0,
+                                              ),
+                                              Text(
+                                                '৳${totalDue.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontSize: 36,
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      SizedBox(
+                                        height: height * 0.02,
+                                      ),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.monetization_on_outlined,
+                                                    size: 26.0,
+                                                    color: Colors.purple,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 15.0,
+                                                  ),
+                                                  Text(
+                                                    "Gross profit (৳)",
+                                                    style: TextStyle(
+                                                      fontSize: 26.0,
+                                                      color: Colors.purple,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 20.0,
+                                              ),
+                                              Text(
+                                                '৳${grossProfit.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontSize: 36,
+                                                  color: Colors.purple,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                              },
                             );
-                          }
-                        },
-                      ),
-
-                      // Client Counter
-                      StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('clientList')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return Text('Error = ${snapshot.error}');
-                          }
-
-                          if (!snapshot.hasData) {
-                            return const CircularProgressIndicator();
-                          } else {
-                            totalClients = 0;
-                            for (var result in snapshot.data!.docs) {
-                              totalClients++;
-                            }
-
-                            return Container();
                           }
                         },
                       ),
@@ -452,76 +667,229 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                         height: height * 0.05,
                       ),
 
-                      // Ongoing Campaign
-                      StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('campaignData')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Container(
-                                alignment: FractionalOffset.center,
-                                child: const CircularProgressIndicator());
-                          }
-
-                          else {
-                            ongoingCampaign = 0;
-                            pastCampaignRevenue = 0;
-                            ongoingCampaignRevenue = 0;
-                            for (var result in snapshot.data!.docs) {
-                              if (result.data()['status'] == "Ongoing") {
-                                ongoingCampaign++;
-                                ongoingCampaignRevenue += int.parse(result.data()['budget']);
+                      // Filter Options
+                      Column(
+                        children: [
+                          // Campaign Status
+                          StreamBuilder(
+                            stream: FirebaseFirestore.instance
+                                .collection('campaignData')
+                                .where('client', isEqualTo: selectedClient)
+                                .where('month', isEqualTo: selectedMonth)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Container(
+                                    alignment: FractionalOffset.center,
+                                    child: const CircularProgressIndicator());
                               }
 
-                              else if(result.data()['status'] == "Completed"){
-                                pastCampaignRevenue += int.parse(result.data()['budget']);
+                              else {
+                                ongoingCampaign = 0;
+                                pastCampaignRevenue = 0;
+                                ongoingCampaignRevenue = 0;
+                                pastCampaignGrossProfit = 0;
+                                for (var result in snapshot.data!.docs) {
+                                  if (result.data()['status'] == "Ongoing") {
+                                    ongoingCampaign++;
+                                    ongoingCampaignRevenue += (result.data()['projectGoal']);
+                                  }
+
+                                  else if(result.data()['status'] == "Completed"){
+                                    pastCampaignRevenue += (result.data()['projectGoal']);
+                                    pastCampaignGrossProfit += (result.data()['grossProfit']);
+                                  }
+
+                                }
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Campaign",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 35.0,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 10,),
+
+                                    // Select
+                                    SizedBox(
+                                      width: width,
+                                      child: DropdownButtonFormField(
+                                        items: statusList.map((status) {
+                                          return DropdownMenuItem(
+                                            value: status,
+                                            child: Text(status),
+                                          );
+                                        }).toList(),
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          isDense: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  width: 1.5,
+                                                  color: Colors.grey.shade300),
+                                              borderRadius:
+                                              BorderRadius.circular(10)),
+                                          focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                width: 1.5,
+                                                color: Colors.grey.shade300),
+                                          ),
+                                        ),
+                                        iconSize: 26,
+                                        dropdownColor: Colors.white,
+                                        isExpanded: true,
+                                        value: selectedStatus,
+                                        hint: const Text(
+                                          "Select campaign status",
+                                          style: TextStyle(
+                                            fontSize: 15.0,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            selectedStatus = newValue;
+                                          });
+                                        },
+                                        validator: (value) {
+                                          if (value == null) {
+                                            return "Select status";
+                                          } else {
+                                            return null;
+                                          }
+                                        },
+                                      ),
+                                    ),
+
+                                    const SizedBox(
+                                      height: 20.0,
+                                    ),
+
+                                    (selectedStatus == "Ongoing") ?
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Number of Campaigns: $ongoingCampaign",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20.0,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 20.0,
+                                        ),
+                                        Text(
+                                          "Earning: ৳$ongoingCampaignRevenue",
+                                          style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      ],
+                                    ) :
+
+                                    (selectedStatus == "Completed") ?
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Number of Campaigns: $pastCampaigns",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20.0,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 20.0,
+                                        ),
+
+                                        Text(
+                                          "Earning: ৳$pastCampaignRevenue",
+                                          style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+
+                                        const SizedBox(
+                                          height: 20.0,
+                                        ),
+
+                                        Text(
+                                          "Gross Profit: ৳$pastCampaignGrossProfit",
+                                          style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      ],
+                                    ) :
+                                    Container()
+                                  ],
+                                );
+                              }
+                            },
+                          ),
+                          StreamBuilder(
+                            stream: FirebaseFirestore.instance
+                                .collection('clientList')
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return Text('Error = ${snapshot.error}');
+                              }
+                              if (!snapshot.hasData) {
+                                // if snapshot has no data this is going to run
+                                return Container(
+                                    alignment: FractionalOffset.center,
+                                    child: const CircularProgressIndicator());
                               }
 
-                            }
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Campaign",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 35.0,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 10,),
-
-                                // Select
-                                SizedBox(
+                              else {
+                                //selectedClient = snapshot.data!.docs[0].get('name');
+                                totalClients = 0;
+                                for (var result in snapshot.data!.docs) {
+                                  totalClients++;
+                                }
+                                return SizedBox(
                                   width: width,
+                                  height: 50,
                                   child: DropdownButtonFormField(
-                                    items: statusList.map((status) {
+                                    items: snapshot.data!.docs.map((value) {
                                       return DropdownMenuItem(
-                                        value: status,
-                                        child: Text(status),
+                                        value: value.get('name'),
+                                        child: Text('${value.get('name')}'),
                                       );
                                     }).toList(),
                                     decoration: InputDecoration(
-                                      isDense: true,
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       enabledBorder: OutlineInputBorder(
                                           borderSide: BorderSide(
                                               width: 1.5,
                                               color: Colors.grey.shade300),
-                                          borderRadius:
-                                          BorderRadius.circular(10)),
-                                      focusedBorder: UnderlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10)
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                             width: 1.5,
-                                            color: Colors.grey.shade300),
+                                            color: Colors.grey.shade300,
+                                        ),
                                       ),
                                     ),
                                     iconSize: 26,
                                     dropdownColor: Colors.white,
                                     isExpanded: true,
-                                    value: selectedStatus,
+                                    value: selectedClient,
                                     hint: const Text(
-                                      "Select campaign status",
+                                      "Select a client",
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         color: Colors.black,
@@ -529,388 +897,337 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                     ),
                                     onChanged: (newValue) {
                                       setState(() {
-                                        selectedStatus = newValue;
+                                        selectedClient = newValue;
                                       });
                                     },
                                     validator: (value) {
                                       if (value == null) {
-                                        return "Select status";
+                                        return "Select a client";
                                       } else {
                                         return null;
                                       }
                                     },
                                   ),
-                                ),
-
-                                const SizedBox(
-                                  height: 20.0,
-                                ),
-
-                                (selectedStatus == "Ongoing") ?
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Number of Campaigns: $ongoingCampaign",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 20.0,
-                                    ),
-                                    Text(
-                                      "Earning: ৳$ongoingCampaignRevenue",
-                                      style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.w400),
-                                    ),
-                                  ],
-                                ) :
-                                (selectedStatus == "Completed") ?
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Number of Campaigns: $pastCampaigns",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 20.0,
-                                    ),
-                                    Text(
-                                      "Earning: ৳$pastCampaignRevenue",
-                                      style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.w400),
-                                    ),
-                                  ],
-                                ) :
-                                Container()
-                              ],
-                            );
-                          }
-                        },
-                      ),
-
-                      SizedBox(
-                        height: height * 0.01,
-                      ),
-
-                      SizedBox(
-                        width: width,
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                              .collection('clientList')
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Text('Error = ${snapshot.error}');
-                            }
-                            if (!snapshot.hasData) {
-                              // if snapshot has no data this is going to run
-                              return Container(
-                                  alignment: FractionalOffset.center,
-                                  child: const CircularProgressIndicator());
-                            }
-
-                            else {
-                              //selectedClient = snapshot.data!.docs[0].get('name');
-                              totalClients = 0;
-                              for (var result in snapshot.data!.docs) {
-                                totalClients++;
+                                );
                               }
-                              return Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: DropdownButtonFormField(
-                                  items: snapshot.data!.docs.map((value) {
-                                    return DropdownMenuItem(
-                                      value: value.get('name'),
-                                      child: Text('${value.get('name')}'),
-                                    );
-                                  }).toList(),
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1.5,
-                                            color: Colors.grey.shade300),
-                                        borderRadius:
-                                        BorderRadius.circular(10)),
-                                    focusedBorder: UnderlineInputBorder(
+                            },
+                          ), // Select Client
+                          SizedBox(height: height * 0.02,),
+                          SizedBox(
+                            width: width,
+                            height: 50,
+                            child: DropdownButtonFormField(
+                              items: monthList.map((month) {
+                                return DropdownMenuItem(
+                                  value: month,
+                                  child: Text(
+                                    month,
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                );
+                              }).toList(),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        width: 1.5,
+                                        color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(10)
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      width: 1.5,
+                                      color: Colors.grey.shade300),
+                                ),
+                              ),
+                              iconSize: 26,
+                              dropdownColor: Colors.white,
+                              isExpanded: true,
+                              value: selectedMonth,
+                              hint: const Text(
+                                "Select a month",
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              onChanged: (newValue) {
+                                setState(() {
+                                  selectedMonth = newValue;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return "Select a month";
+                                } else {
+                                  return null;
+                                }
+                              },
+                            ),
+                          ), // Select Month
+                          SizedBox(height: height * 0.02,),
+                          SizedBox(
+                            width: width,
+                            child: TextFormField(
+                              controller: searchTextEditingController,
+                              onChanged: (textTyped) {
+                                setState(() {
+                                  search = textTyped;
+                                });
+                              },
+
+                              decoration: InputDecoration(
+                                  prefixIcon: const Icon(Icons.search,color: Colors.black,),
+                                  hintText: "Search by Bill No",
+                                  suffixStyle: const TextStyle(color: Colors.black),
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  suffixIcon: searchTextEditingController.text.isEmpty ?
+                                  Container(width: 0) : IconButton(
+                                    icon: const Icon(Icons.close,color: Colors.black,),
+                                    onPressed: () {
+                                      searchTextEditingController.clear();
+                                      search = null;
+                                      setState(() {
+                                      });
+                                    },
+                                  ),
+                                  enabledBorder:OutlineInputBorder(
                                       borderSide: BorderSide(
                                           width: 1.5,
                                           color: Colors.grey.shade300),
-                                    ),
+                                      borderRadius: BorderRadius.circular(10)
                                   ),
-                                  iconSize: 26,
-                                  dropdownColor: Colors.white,
-                                  isExpanded: true,
-                                  value: selectedClient,
-                                  hint: const Text(
-                                    "Select a client",
-                                    style: TextStyle(
-                                      fontSize: 15.0,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      selectedClient = newValue;
-                                    });
-                                  },
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return "Select a client";
-                                    } else {
-                                      return null;
-                                    }
-                                  },
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
 
-                      // // Select Client Dropdown
-                      // SizedBox(
-                      //   width: width,
-                      //   child: StreamBuilder(
-                      //     stream: FirebaseFirestore.instance
-                      //         .collection('clientList')
-                      //         .snapshots(),
-                      //     builder: (context, snapshot) {
-                      //       if (snapshot.hasError) {
-                      //         return Text('Error = ${snapshot.error}');
-                      //       }
-                      //       if (!snapshot.hasData) {
-                      //         // if snapshot has no data this is going to run
-                      //         return Container(
-                      //             alignment: FractionalOffset.center,
-                      //             child: const CircularProgressIndicator());
-                      //       } else {
-                      //         //selectedClient = snapshot.data!.docs[0].get('name');
-                      //         totalClients = 0;
-                      //         for (var result in snapshot.data!.docs) {
-                      //           totalClients++;
-                      //         }
-                      //         return Container(
-                      //           decoration: BoxDecoration(
-                      //               color: Colors.white,
-                      //               borderRadius: BorderRadius.circular(10)),
-                      //           child: DropdownButtonFormField(
-                      //             items: snapshot.data!.docs.map((value) {
-                      //               return DropdownMenuItem(
-                      //                 value: value.get('name'),
-                      //                 child: Text('${value.get('name')}'),
-                      //               );
-                      //             }).toList(),
-                      //             decoration: InputDecoration(
-                      //               isDense: true,
-                      //               enabledBorder: OutlineInputBorder(
-                      //                   borderSide: BorderSide(
-                      //                       width: 1.5,
-                      //                       color: Colors.grey.shade300),
-                      //                   borderRadius:
-                      //                   BorderRadius.circular(10)),
-                      //               focusedBorder: UnderlineInputBorder(
-                      //                 borderSide: BorderSide(
-                      //                     width: 1.5,
-                      //                     color: Colors.grey.shade300),
-                      //               ),
-                      //             ),
-                      //             iconSize: 26,
-                      //             dropdownColor: Colors.white,
-                      //             isExpanded: true,
-                      //             value: selectedClient,
-                      //             hint: const Text(
-                      //               "Select a client",
-                      //               style: TextStyle(
-                      //                 fontSize: 15.0,
-                      //                 color: Colors.black,
-                      //               ),
-                      //             ),
-                      //             onChanged: (newValue) {
-                      //               setState(() {
-                      //                 selectedClient = newValue;
-                      //               });
-                      //             },
-                      //             validator: (value) {
-                      //               if (value == null) {
-                      //                 return "Select a client";
-                      //               } else {
-                      //                 return null;
-                      //               }
-                      //             },
-                      //           ),
-                      //         );
-                      //       }
-                      //     },
-                      //   ),
-                      // ),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          width: 1.5,
+                                          color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  contentPadding: const EdgeInsets.all(15)),
+
+                            ),
+                          ), // Search bar
+                        ],
+                      ),
 
                       SizedBox(
                         height: height * 0.02,
                       ),
 
-                      // Filter by
-                      /*Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        width: width,
-                        height: 55,
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(
-                                width: 1.5, color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(10)),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton(
-                            iconSize: 26,
-                            dropdownColor: Colors.white,
-                            isExpanded: true,
-                            hint: const Text(
-                              "Filter by",
-                              style: TextStyle(
-                                fontSize: 15.0,
-                                color: Colors.black,
-                              ),
-                            ),
-                            value: selectedFilter,
-                            onChanged: (newValue) async {
-                              setState(() {
-                                selectedFilter = newValue;
-                              });
-                            },
-                            items: filterByList.map((filter) {
-                              return DropdownMenuItem(
-                                value: filter,
-                                child: Text(
-                                  filter,
-                                  style: const TextStyle(color: Colors.black),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      )*/
-
-                      SizedBox(
-                        height: height * 0.03,
-                      ),
-
+                      // Add Campaign Data
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(children: [
-                            SizedBox(
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const DataInputForm()));
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Add Campaign Data",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
+                          (currentUserInfo?.userType == "Super Admin") ?
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: width * 0.2,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Campaign Data",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: width * 0.01,
-                            ),
-                            SizedBox(
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final status = await showTextDialog2(
-                                    context,
-                                    title: 'Add client',
-                                    value: '',
-                                  );
-                                  if (status != null) {
-                                    Map<String, dynamic> data = {'name': status};
-                                    FirebaseFirestore.instance
-                                        .collection('clientList')
-                                        .doc(idGenerator())
-                                        .set(data);
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Add Client",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
+                              SizedBox(
+                                width: width * 0.01,
                               ),
-                            ),
-                            SizedBox(
-                              width: width * 0.01,
-                            ),
-                            SizedBox(
-                              height: 45,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final status = await showTextDialog(
-                                    context,
-                                    title: 'Delete client',
-                                    value: '',
-                                  );
+                              SizedBox(
+                                width: width * 0.15,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return AddClientDialog(title: "Add Client");
+                                        }
+                                    );
 
-                                  if (status != null) {
-                                    var snackBar = const SnackBar(
-                                        content: Text('Client deleted'));
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(snackBar);
-                                    var snapshot = await FirebaseFirestore.instance
-                                        .collection('clientList')
-                                        .where('name', isEqualTo: status)
-                                        .get();
-                                    await snapshot.docs.first.reference.delete();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: (Colors.blue),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10))),
-                                child: Text(
-                                  "Delete Client",
-                                  style: GoogleFonts.raleway(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
                                 ),
                               ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.15,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    selectedClient = null;
+                                    final status = await showTextDialog(
+                                      context,
+                                      title: 'Delete client',
+                                      value: '',
+                                    );
+
+                                    if (status != null) {
+                                      var snackBar = const SnackBar(
+                                          content: Text('Client deleted'));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+                                      var snapshot = await FirebaseFirestore.instance
+                                          .collection('clientList')
+                                          .where('name', isEqualTo: status)
+                                          .get();
+                                      await snapshot.docs.first.reference.delete();
+                                    }
+                                    setState(() {});
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Delete Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.15,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    selectedClient = null;
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return AddClientDialog(title: "Change AIT");
+                                        }
+                                    );
+
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Change AIT",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ) :
+
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: width * 0.2,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Campaign Data",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.15,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    selectedClient = null;
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return AddClientDialog(title: "Change AIT");
+                                        }
+                                    );
+
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Change AIT",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          InkWell(
+                            onTap: (){
+                              search = null;
+                              selectedClient = null;
+                              selectedMonth = null;
+                              selectedStatus = null;
+                              searchTextEditingController.clear();
+                              setState(() {
+
+                              });
+                            },
+                            child: Column(
+                              children: const [
+                                Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold),),
+                              ],
                             ),
-                          ]),
+                          )
                         ],
                       ),
 
                       SizedBox(
-                        height: height * 0.05,
+                        height: height * 0.03,
                       ),
 
                       //Now let's add the Table
@@ -918,7 +1235,11 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           StreamBuilder(
-                            stream: FirebaseFirestore.instance.collection('campaignData').where('client', isEqualTo: selectedClient).snapshots(),
+                            stream: FirebaseFirestore.instance.collection('campaignData')
+                                .where('client', isEqualTo: selectedClient)
+                                .where('month', isEqualTo: selectedMonth)
+                                .where('billNo', isEqualTo: search)
+                                .snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
                                 return Text('Error = ${snapshot.error}');
@@ -929,27 +1250,45 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                     child: CircularProgressIndicator());
                               }
 
-                              return SingleChildScrollView(
-                                child:  FittedBox(
-                                  child: DataTable(
-                                    headingRowColor: MaterialStateProperty.resolveWith(
-                                            (states) => Colors.grey.shade200),
-                                    columns: const [
-                                      DataColumn(label: Text("Campaign Name")),
-                                      DataColumn(label: Text("Post Link")),
-                                      DataColumn(label: Text("Client Name")),
-                                      DataColumn(label: Text("Budget")),
-                                      DataColumn(label: Text("Total spent")),
-                                      DataColumn(label: Text("Starting Date")),
-                                      DataColumn(label: Text("Ending Date")),
-                                      DataColumn(label: Text("PDF File")),
-                                      DataColumn(label: Text("Status")),
-                                      DataColumn(label: Text("")),
-                                    ],
-                                    rows: _createRows(snapshot.data!),
+                              else{
+                                return SizedBox(
+                                  height: height,
+                                  child: InteractiveViewer(
+                                      constrained : false,
+                                      scaleEnabled: false,
+                                      child: DataTable(
+                                        sortColumnIndex: sortColumnIndex,
+                                        headingRowColor: MaterialStateProperty.resolveWith(
+                                                (states) => Colors.grey.shade200),
+                                        columns: const [
+                                          DataColumn(label: Text("Bill No")),
+                                          DataColumn(label: Text("Campaign Name")),
+                                          DataColumn(label: Text("Post Link")),
+                                          DataColumn(label: Text("Description")),
+                                          DataColumn(label: Text("Client")),
+                                          DataColumn(label: Text("Project Goal")),
+                                          DataColumn(label: Text("Sales")),
+                                          DataColumn(label: Text("ASF")),
+                                          DataColumn(label: Text("Subtotal")),
+                                          DataColumn(label: Text("Amount Vat")),
+                                          DataColumn(label: Text("AIT")),
+                                          DataColumn(label: Text("Expense")),
+                                          DataColumn(label: Text("Total Expense")),
+                                          DataColumn(label: Text("Gross Profit")),
+                                          DataColumn(label: Text("Bill Sent")),
+                                          DataColumn(label: Text("Bill Received")),
+                                          DataColumn(label: Text("Starting Date")),
+                                          DataColumn(label: Text("Ending Date")),
+                                          DataColumn(label: Text("File")),
+                                          DataColumn(label: Text("Status")),
+                                          DataColumn(label: Text("")),
+                                        ],
+                                        rows: _createRows(snapshot.data!),
+                                      )
                                   ),
-                                ),
-                              );
+                                );
+                              }
+
                             },
                           ),
                         ],

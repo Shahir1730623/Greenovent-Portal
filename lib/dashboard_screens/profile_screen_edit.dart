@@ -27,7 +27,6 @@ class _ProfileScreenEditState extends State<ProfileScreenEdit> {
       "email" : emailTextEditingController.text,
       "phone" : (phoneTextEditingController.text.length == 11) ? "+88" + phoneTextEditingController.text : phoneTextEditingController.text,
       "userType" : positionTextEditingController.text,
-      "imageUrl" : currentUserInfo!.imageUrl!
     };
 
     FirebaseFirestore.instance

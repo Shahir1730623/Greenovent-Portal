@@ -15,7 +15,8 @@ import '../app_colors.dart';
 import '../widget/responsive_layout.dart';
 
 class DataInputForm extends StatefulWidget {
-  const DataInputForm({Key? key}) : super(key: key);
+  int totalCampaigns = 0;
+  DataInputForm({Key? key,required this.totalCampaigns}) : super(key: key);
 
   @override
   State<DataInputForm> createState() => _DataInputFormState();
@@ -24,12 +25,15 @@ class DataInputForm extends StatefulWidget {
 class _DataInputFormState extends State<DataInputForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController campaignNameTextEditingController = TextEditingController();
+  TextEditingController campaignDescriptionTextEditingController = TextEditingController();
   TextEditingController campaignLinkTextEditingController = TextEditingController();
   TextEditingController projectGoalTextEditingController = TextEditingController();
   TextEditingController salesTextEditingController = TextEditingController();
   TextEditingController expenseTextEditingController = TextEditingController();
   TextEditingController billSentTextEditingController = TextEditingController();
   TextEditingController billReceivedTextEditingController = TextEditingController();
+  TextEditingController aitTextEditingController = TextEditingController();
+
   var selectedClient;
   String? pickedFileType;
 
@@ -38,13 +42,14 @@ class _DataInputFormState extends State<DataInputForm> {
   DateTime endingDate = DateTime.now();
   String? formattedStartingDate,formattedEndingDate;
   int startingDateCounter = 0, endingDateCounter = 0;
+  double? initialAit;
   bool flag = false, flag2 = false;
+
   //PlatformFile? pickedFile;
   Uint8List? pickedFile;
   var pdfFileUrl;
   UploadTask? uploadTask;
   String? filename;
-
 
   Future selectFile() async {
     try{
@@ -109,7 +114,6 @@ class _DataInputFormState extends State<DataInputForm> {
     //return url;
   }
 
-
   pickStartingDate() async {
     DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -132,6 +136,7 @@ class _DataInputFormState extends State<DataInputForm> {
     }
 
   }
+
   pickEndingDate() async {
     DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -160,34 +165,73 @@ class _DataInputFormState extends State<DataInputForm> {
     return now.microsecondsSinceEpoch.toString();
   }
 
+  getAit() async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('clientList')
+        .where('name', isEqualTo: selectedClient)
+        .get();
+
+    for (var result in snapshot.docs) {
+      initialAit = (result.data()['AIT']);
+    }
+
+    setState(() {
+      aitTextEditingController.text = initialAit.toString();
+    });
+
+  }
+
   saveDataToDatabase(){
+    double projectGoal = double.parse(projectGoalTextEditingController.text.trim());
+    double sales = double.parse(salesTextEditingController.text.trim());
     double ASF = double.parse(salesTextEditingController.text.trim()) * 0.10;
-    print(ASF);
     double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
     double amountVat = subTotal * 0.15;
-    double AIT = subTotal * 0.01;
+    double AIT = subTotal * (initialAit! / 100);
+    double AITPercentage = initialAit!;
+    double expense = double.parse(expenseTextEditingController.text.trim());
+    double totalExpense = double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT;
+    double grossProfit = double.parse(projectGoalTextEditingController.text.trim()) - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT);
+    double billSent = double.parse(billSentTextEditingController.text.trim());
+    double billReceived = double.parse(billReceivedTextEditingController.text.trim());
+
+    projectGoal = double.parse(projectGoal.toStringAsFixed(2));
+    sales = double.parse(sales.toStringAsFixed(2));
+    ASF = double.parse(ASF.toStringAsFixed(2));
+    subTotal = double.parse(subTotal.toStringAsFixed(2));
+    amountVat = double.parse(amountVat.toStringAsFixed(2));
+    AIT = double.parse(AIT.toStringAsFixed(2));
+    expense = double.parse(expense.toStringAsFixed(2));
+    totalExpense = double.parse(totalExpense.toStringAsFixed(2));
+    grossProfit = double.parse(grossProfit.toStringAsFixed(2));
+    billSent = double.parse(billSent.toStringAsFixed(2));
+    billReceived = double.parse(billReceived.toStringAsFixed(2));
 
     Map<String,dynamic> data = {
+      'billNo' : "123${widget.totalCampaigns + 1}",
       'campaignName' : campaignNameTextEditingController.text.trim(),
+      'description' : campaignDescriptionTextEditingController.text.trim(),
       'campaignLink' : campaignLinkTextEditingController.text.trim(),
       'client' : selectedClient.toString(),
-      'projectGoal' : double.parse(projectGoalTextEditingController.text.trim()),
-      'sales' : double.parse(salesTextEditingController.text.trim()),
+      'projectGoal' : projectGoal,
+      'sales' : sales,
       'ASF' :  ASF,
+      'AITPercentage' : AITPercentage,
       'subTotal' :  subTotal,
       'amountVat' : amountVat,
       'AIT' : AIT,
-      'expense' : double.parse(expenseTextEditingController.text.trim()),
-      'totalExpense' : double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT,
-      'grossProfit' : double.parse(projectGoalTextEditingController.text.trim()) - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT),
-      'billSent' : double.parse(billSentTextEditingController.text.trim()),
-      'billReceived' : double.parse(billReceivedTextEditingController.text.trim()),
+      'expense' : expense,
+      'totalExpense' : totalExpense,
+      'grossProfit' : grossProfit,
+      'billSent' : billSent,
+      'billReceived' : billReceived,
       'startingDate' : formattedStartingDate,
       'endingDate' : formattedEndingDate,
       'month' : DateFormat.MMMM().format(startingDate),
       'pdfLink' : pdfFileUrl,
       'status' : "Ongoing"
     };
+
     FirebaseFirestore.instance.collection('campaignData').doc(idGenerator()).set(data);
     setState(() {
       startingDateCounter = 0;
@@ -200,6 +244,7 @@ class _DataInputFormState extends State<DataInputForm> {
     projectGoalTextEditingController.clear();
     salesTextEditingController.clear();
     expenseTextEditingController.clear();
+    campaignDescriptionTextEditingController.clear();
     var snackBar = const SnackBar(content: Text('Data uploaded successfully'));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
@@ -219,7 +264,7 @@ class _DataInputFormState extends State<DataInputForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  (ResponsiveWidget.isSmallScreen(context)) ? const SizedBox() : (ResponsiveWidget.isMediumScreen(context)) ? SizedBox() : Expanded(
+                  (ResponsiveWidget.isSmallScreen(context)) ? const SizedBox() : (ResponsiveWidget.isMediumScreen(context)) ? const SizedBox() : Expanded(
                     child: Container(
                       height: height,
                       color: AppColors.mainBlueColor,
@@ -383,6 +428,62 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
+                              // Campaign Description
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Campaign Description',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    controller: campaignDescriptionTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      hintText: "Campaign Description",
+                                      suffixIcon: campaignDescriptionTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            campaignDescriptionTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+
+                                ],
+                              ),
+
                               // Client Name
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,6 +547,8 @@ class _DataInputFormState extends State<DataInputForm> {
                                                 selectedClient = newValue;
                                               });
 
+                                              getAit();
+
                                             },
 
                                             validator: (value){
@@ -462,6 +565,56 @@ class _DataInputFormState extends State<DataInputForm> {
                                     },
                                   ),
                                   SizedBox(height: height * 0.025),
+                                ],
+                              ),
+
+                              // AIT
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'AIT %',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: aitTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "AIT(%)",
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+
                                 ],
                               ),
 

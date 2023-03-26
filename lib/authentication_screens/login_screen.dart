@@ -1,20 +1,13 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/app_colors.dart';
 import 'package:greenovent_portal/authentication_screens/change_password.dart';
 import 'package:greenovent_portal/authentication_screens/registration_screen.dart';
-import 'package:greenovent_portal/dashboard_screens/super_admin_dashboard.dart';
-import 'package:greenovent_portal/dashboard_screens/sub_admin_dashboard.dart';
-import 'package:greenovent_portal/form/sub_admin_form.dart';
 import 'package:greenovent_portal/loading_screen.dart';
 import 'package:greenovent_portal/widget/responsive_layout.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../assistant_method.dart';
 import '../global.dart';
 
@@ -47,23 +40,19 @@ class _LoginScreenState extends State<LoginScreen> {
       currentFirebaseUser = auth.user;
       print(currentFirebaseUser!.uid);
       auth.user != null ? AssistantMethods.readCurrentOnlineUserInfo() : null;
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(currentFirebaseUser!.uid)
-          .get()
-          .then((snapData) {
+      await FirebaseFirestore.instance.collection("users").doc(currentFirebaseUser!.uid).get().then((snapData) {
         if (snapData.exists) {
+          Navigator.pop(context);
           Navigator.push(context, MaterialPageRoute(builder: (c) => const LoadingScreen()));
         }
       });
     }).catchError((onError){
+      Navigator.pop(context);
       var snackBar = const SnackBar(content: Text('Wrong credentials! Try again'));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     });
 
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pop(context);
-    });
+
   }
 
   @override
@@ -182,11 +171,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       border: InputBorder.none,
                                       prefixIcon: IconButton(
                                         onPressed: () {},
-                                        icon: const Icon(
-                                            Icons.email_outlined),
+                                        icon: const Icon(Icons.email_outlined),
                                       ),
-                                      suffixIcon: emailTextEditingController
-                                          .text.isEmpty
+                                      suffixIcon: emailTextEditingController.text.isEmpty
                                           ? Container(width: 0)
                                           : IconButton(
                                         icon: const Icon(Icons.close),
