@@ -268,6 +268,13 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
           },
         ),
 
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('lastEditedBy')
+              ? documentSnapshot.get('lastEditedBy')
+              : ''),
+        ),
+
+
         DataCell(const Icon(Icons.delete), onTap: () {
           showDialog(
             //show confirm dialogue
@@ -323,8 +330,6 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Size:' + width.toString()),
-
                       const SizedBox(
                         height: 20.0,
                       ),
@@ -1040,7 +1045,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Add Campaign Data",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1069,7 +1074,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Add Client",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1110,7 +1115,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Delete Client",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1140,7 +1145,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Change AIT",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1167,7 +1172,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Add Campaign Data",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1197,7 +1202,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                   child: Text(
                                     "Change AIT",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
@@ -1281,6 +1286,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                           DataColumn(label: Text("Ending Date")),
                                           DataColumn(label: Text("File")),
                                           DataColumn(label: Text("Status")),
+                                          DataColumn(label: Text("Last Edited By")),
                                           DataColumn(label: Text("")),
                                         ],
                                         rows: _createRows(snapshot.data!),

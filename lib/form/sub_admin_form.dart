@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:greenovent_portal/global.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart' as path;
@@ -229,7 +230,8 @@ class _DataInputFormState extends State<DataInputForm> {
       'endingDate' : formattedEndingDate,
       'month' : DateFormat.MMMM().format(startingDate),
       'pdfLink' : pdfFileUrl,
-      'status' : "Ongoing"
+      'status' : "Ongoing",
+      'lastEditedBy' : currentUserInfo?.name
     };
 
     FirebaseFirestore.instance.collection('campaignData').doc(idGenerator()).set(data);
@@ -911,7 +913,9 @@ class _DataInputFormState extends State<DataInputForm> {
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  const SizedBox(width: 30.0),
+
+                                  const SizedBox(height: 6.0),
+
                                   Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(color: Colors.grey.shade300,width: 1.5),

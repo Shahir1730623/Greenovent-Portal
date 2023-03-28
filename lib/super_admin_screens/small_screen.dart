@@ -265,6 +265,13 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
           },
         ),
 
+        DataCell(
+          Text(documentSnapshot.data().toString().contains('lastEditedBy')
+              ? documentSnapshot.get('lastEditedBy')
+              : ''),
+        ),
+
+
         DataCell(const Icon(Icons.delete), onTap: () {
           showDialog(
             //show confirm dialogue
@@ -320,8 +327,6 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Size:' + width.toString()),
-
                       const SizedBox(
                         height: 20.0,
                       ),
@@ -393,15 +398,15 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.article,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
                                                   Text(
                                                     "Total campaigns",
                                                     style: TextStyle(
-                                                      fontSize: 26.0,
+                                                      fontSize: 20.0,
                                                       fontWeight: FontWeight.bold,
                                                     ),
                                                   )
@@ -413,7 +418,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                               Text(
                                                 "$totalCampaigns campaigns",
                                                 style: const TextStyle(
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               )
@@ -436,18 +441,20 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.comment,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                     color: Colors.red,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
-                                                  Text(
-                                                    "Ongoing Campaigns",
-                                                    style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontSize: 26.0,
-                                                      fontWeight: FontWeight.bold,
+                                                  Expanded(
+                                                    child: Text(
+                                                      "Ongoing Campaigns",
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 20.0,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
                                                   )
                                                 ],
@@ -459,7 +466,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 "$ongoingCampaign campaigns",
                                                 style: const TextStyle(
                                                   color: Colors.red,
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               )
@@ -482,16 +489,16 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.people,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                     color: Colors.amber,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
                                                   Text(
                                                     "Total Clients",
                                                     style: TextStyle(
-                                                      fontSize: 26.0,
+                                                      fontSize: 20.0,
                                                       color: Colors.amber,
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -504,7 +511,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                               Text(
                                                 "$totalClients Clients",
                                                 style: const TextStyle(
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   color: Colors.amber,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -528,16 +535,16 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.monetization_on_outlined,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                     color: Colors.green,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
                                                   Text(
                                                     "Total Earning (৳)",
                                                     style: TextStyle(
-                                                      fontSize: 26.0,
+                                                      fontSize: 20.0,
                                                       color: Colors.green,
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -550,7 +557,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                               Text(
                                                 "৳${totalEarning.toStringAsFixed(2)}",
                                                 style: const TextStyle(
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   color: Colors.green,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -574,16 +581,16 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.monetization_on_outlined,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                     color: Colors.red,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
                                                   Text(
                                                     "Total Due (৳)",
                                                     style: TextStyle(
-                                                      fontSize: 26.0,
+                                                      fontSize: 20.0,
                                                       color: Colors.red,
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -596,7 +603,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                               Text(
                                                 "৳${totalDue.toStringAsFixed(2)}",
                                                 style: const TextStyle(
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   color: Colors.red,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -620,16 +627,16 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                                 children: const [
                                                   Icon(
                                                     Icons.monetization_on_outlined,
-                                                    size: 26.0,
+                                                    size: 22.0,
                                                     color: Colors.purple,
                                                   ),
                                                   SizedBox(
-                                                    width: 15.0,
+                                                    width: 10.0,
                                                   ),
                                                   Text(
                                                     "Gross profit (৳)",
                                                     style: TextStyle(
-                                                      fontSize: 26.0,
+                                                      fontSize: 20.0,
                                                       color: Colors.purple,
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -642,7 +649,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                               Text(
                                                 "৳${grossProfit.toStringAsFixed(2)}",
                                                 style: const TextStyle(
-                                                  fontSize: 36,
+                                                  fontSize: 30,
                                                   color: Colors.purple,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -707,7 +714,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                       "Campaign",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 35.0,
+                                        fontSize: 25.0,
                                       ),
                                     ),
 
@@ -858,7 +865,6 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                 }
                                 return SizedBox(
                                   width: width,
-                                  height: 50,
                                   child: DropdownButtonFormField(
                                     items: snapshot.data!.docs.map((value) {
                                       return DropdownMenuItem(
@@ -889,7 +895,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                     hint: const Text(
                                       "Select a client",
                                       style: TextStyle(
-                                        fontSize: 15.0,
+                                        fontSize: 13.0,
                                         color: Colors.black,
                                       ),
                                     ),
@@ -913,7 +919,6 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                           SizedBox(height: height * 0.02,),
                           SizedBox(
                             width: width,
-                            height: 50,
                             child: DropdownButtonFormField(
                               items: monthList.map((month) {
                                 return DropdownMenuItem(
@@ -946,7 +951,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                               hint: const Text(
                                 "Select a month",
                                 style: TextStyle(
-                                  fontSize: 15.0,
+                                  fontSize: 13.0,
                                   color: Colors.black,
                                 ),
                               ),
@@ -1022,7 +1027,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               SizedBox(
-                                width: width * 0.25,
+                                width: width * 0.32,
                                 height: 45,
                                 child: ElevatedButton(
                                   onPressed: () async {
@@ -1044,10 +1049,10 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                 ),
                               ),
                               SizedBox(
-                                width: width * 0.02,
+                                width: width * 0.01,
                               ),
                               SizedBox(
-                                width: width * 0.25,
+                                width: width * 0.32,
                                 height: 45,
                                 child: ElevatedButton(
                                   onPressed: () async {
@@ -1072,26 +1077,6 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: width * 0.02,
-                              ),
-                              InkWell(
-                                onTap: (){
-                                  search = null;
-                                  selectedClient = null;
-                                  selectedMonth = null;
-                                  selectedStatus = null;
-                                  searchTextEditingController.clear();
-                                  setState(() {
-
-                                  });
-                                },
-                                child: Column(
-                                  children: const [
-                                    Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold),),
-                                  ],
-                                ),
-                              )
                             ],
                           ),
                           const SizedBox(height: 10,),
@@ -1100,7 +1085,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               SizedBox(
-                                width: width * 0.25,
+                                width: width * 0.32,
                                 height: 45,
                                 child: ElevatedButton(
                                   onPressed: () async {
@@ -1131,17 +1116,17 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                   child: Text(
                                     "Delete Client",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 15,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
                                 ),
                               ),
                               SizedBox(
-                                width: width * 0.02,
+                                width: width * 0.01,
                               ),
                               SizedBox(
-                                width: width * 0.25,
+                                width: width * 0.32,
                                 height: 45,
                                 child: ElevatedButton(
                                   onPressed: () async {
@@ -1167,9 +1152,15 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: width * 0.02,
-                              ),
+
+                            ],
+                          ),
+
+                          const SizedBox(height: 10,),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
                               InkWell(
                                 onTap: (){
                                   search = null;
@@ -1181,11 +1172,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
 
                                   });
                                 },
-                                child: Column(
-                                  children: const [
-                                    Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold),),
-                                  ],
-                                ),
+                                child: const Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 15,fontWeight: FontWeight.bold),),
                               )
                             ],
                           )
@@ -1304,6 +1291,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                           DataColumn(label: Text("Ending Date")),
                                           DataColumn(label: Text("File")),
                                           DataColumn(label: Text("Status")),
+                                          DataColumn(label: Text("Last Edited By")),
                                           DataColumn(label: Text("")),
                                         ],
                                         rows: _createRows(snapshot.data!),

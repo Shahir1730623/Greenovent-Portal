@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/authentication_screens/login_screen.dart';
 import 'package:greenovent_portal/dashboard_screens/super_admin_dashboard.dart';
+import 'package:greenovent_portal/widget/responsive_layout.dart';
 import 'app_colors.dart';
 import 'assistant_method.dart';
 import 'global.dart';
@@ -56,7 +57,29 @@ class _LoadingScreenState extends State<LoadingScreen> {
       child: Container(
         height: height,
         color: AppColors.mainBlueColor,
-        child: Center(
+        child: (ResponsiveWidget.isSmallScreen(context)) ?
+        Center(
+          child: Text(
+            'Greenovent Portal',
+            style: GoogleFonts.raleway(
+              fontSize: 35.0,
+              color: AppColors.whiteColor,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ) : (ResponsiveWidget.isMediumScreen(context)) ?
+        Center(
+          child: Text(
+            'Greenovent Portal',
+            style: GoogleFonts.raleway(
+              fontSize: 45.0,
+              color: AppColors.whiteColor,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ) :
+
+        Center(
           child: Text(
             'Greenovent Portal',
             style: GoogleFonts.raleway(
@@ -65,7 +88,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-        ),
+        )
       ),
     );
   }
