@@ -1020,169 +1020,11 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                         height: height * 0.02,
                       ),
 
-                      (currentUserInfo?.userType == "Super Admin") ?
-                      Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              SizedBox(
-                                width: width * 0.32,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Add Data",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: width * 0.01,
-                              ),
-                              SizedBox(
-                                width: width * 0.32,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context){
-                                          return AddClientDialog(title: "Add Client");
-                                        }
-                                    );
-
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Add Client",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10,),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              SizedBox(
-                                width: width * 0.32,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    selectedClient = null;
-                                    final status = await showTextDialog(
-                                      context,
-                                      title: 'Delete client',
-                                      value: '',
-                                    );
-
-                                    if (status != null) {
-                                      var snackBar = const SnackBar(
-                                          content: Text('Client deleted'));
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(snackBar);
-                                      var snapshot = await FirebaseFirestore.instance
-                                          .collection('clientList')
-                                          .where('name', isEqualTo: status)
-                                          .get();
-                                      await snapshot.docs.first.reference.delete();
-                                    }
-                                    setState(() {});
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Delete Client",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: width * 0.01,
-                              ),
-                              SizedBox(
-                                width: width * 0.32,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    selectedClient = null;
-                                    showDialog(
-                                        context: context,
-                                        builder: (context){
-                                          return AddClientDialog(title: "Change AIT");
-                                        }
-                                    );
-
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: (Colors.blue),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10))),
-                                  child: Text(
-                                    "Change AIT",
-                                    style: GoogleFonts.raleway(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-
-                            ],
-                          ),
-
-                          const SizedBox(height: 10,),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              InkWell(
-                                onTap: (){
-                                  search = null;
-                                  selectedClient = null;
-                                  selectedMonth = null;
-                                  selectedStatus = null;
-                                  searchTextEditingController.clear();
-                                  setState(() {
-
-                                  });
-                                },
-                                child: const Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 15,fontWeight: FontWeight.bold),),
-                              )
-                            ],
-                          )
-                        ]
-                      ) :
-
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
-                            width: width * 0.2,
+                            width: width * 0.32,
                             height: 45,
                             child: ElevatedButton(
                               onPressed: () async {
@@ -1195,7 +1037,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10))),
                               child: Text(
-                                "Add Campaign Data",
+                                "Add Data",
                                 style: GoogleFonts.raleway(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -1207,7 +1049,81 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                             width: width * 0.01,
                           ),
                           SizedBox(
-                            width: width * 0.15,
+                            width: width * 0.32,
+                            height: 45,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                showDialog(
+                                    context: context,
+                                    builder: (context){
+                                      return AddClientDialog(title: "Add Client");
+                                    }
+                                );
+
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: (Colors.blue),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10))),
+                              child: Text(
+                                "Add Client",
+                                style: GoogleFonts.raleway(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10,),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                            width: width * 0.32,
+                            height: 45,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                selectedClient = null;
+                                final status = await showTextDialog(
+                                  context,
+                                  title: 'Delete client',
+                                  value: '',
+                                );
+
+                                if (status != null) {
+                                  var snackBar = const SnackBar(
+                                      content: Text('Client deleted'));
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(snackBar);
+                                  var snapshot = await FirebaseFirestore.instance
+                                      .collection('clientList')
+                                      .where('name', isEqualTo: status)
+                                      .get();
+                                  await snapshot.docs.first.reference.delete();
+                                }
+                                setState(() {});
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: (Colors.blue),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10))),
+                              child: Text(
+                                "Delete Client",
+                                style: GoogleFonts.raleway(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: width * 0.01,
+                          ),
+                          SizedBox(
+                            width: width * 0.32,
                             height: 45,
                             child: ElevatedButton(
                               onPressed: () async {
@@ -1233,6 +1149,28 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                               ),
                             ),
                           ),
+
+                        ],
+                      ),
+
+                      const SizedBox(height: 10,),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          InkWell(
+                            onTap: (){
+                              search = null;
+                              selectedClient = null;
+                              selectedMonth = null;
+                              selectedStatus = null;
+                              searchTextEditingController.clear();
+                              setState(() {
+
+                              });
+                            },
+                            child: const Text('Clear Filter',style: TextStyle(color: Colors.blue,fontSize: 15,fontWeight: FontWeight.bold),),
+                          )
                         ],
                       ),
 

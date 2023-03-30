@@ -1179,7 +1179,6 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                         (currentUserInfo?.userType == "Super Admin") ?
                          Row(
                            children: [
                              SizedBox(
@@ -1304,65 +1303,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                ),
                              ),
                            ],
-                         ) :
-
-                         Row(
-                           children: [
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   Navigator.push(
-                                       context,
-                                       MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Add Campaign Data",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                             SizedBox(
-                               width: width * 0.01,
-                             ),
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   selectedClient = null;
-                                   showDialog(
-                                       context: context,
-                                       builder: (context){
-                                         return AddClientDialog(title: "Change AIT");
-                                       }
-                                   );
-
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Change AIT",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                           ],
                          ),
-
                          InkWell(
                             onTap: (){
                               search = null;
