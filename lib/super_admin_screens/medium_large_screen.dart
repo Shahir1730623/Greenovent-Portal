@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/dashboard_screens/profile_screen_edit.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 import '../app_colors.dart';
 import '../authentication_screens/login_screen.dart';
@@ -13,14 +12,14 @@ import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget2.dart';
 import '../widget/dialog_widget_add_client.dart';
 
-class LargeScreenWidget extends StatefulWidget {
-  const LargeScreenWidget({Key? key}) : super(key: key);
+class MediumLargeScreenWidget extends StatefulWidget {
+  const MediumLargeScreenWidget({Key? key}) : super(key: key);
 
   @override
-  State<LargeScreenWidget> createState() => _LargeScreenWidgetState();
+  State<MediumLargeScreenWidget> createState() => _MediumLargeScreenWidgetState();
 }
 
-class _LargeScreenWidgetState extends State<LargeScreenWidget> {
+class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
   //setting the expansion function for the navigation rail
   TextEditingController clientAddController = TextEditingController();
   TextEditingController searchTextEditingController = TextEditingController();
@@ -44,9 +43,9 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
       totalReceived = 0;
 
   int totalClients = 0,
-  totalCampaigns = 0,
-  pastCampaigns = 0,
-  ongoingCampaign = 0;
+      totalCampaigns = 0,
+      pastCampaigns = 0,
+      ongoingCampaign = 0;
 
   int? sortColumnIndex;
 
@@ -557,7 +556,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       child: Text(
                                                         "Total Campaigns",
                                                         style: TextStyle(
-                                                          fontSize: 22.0,
+                                                          fontSize: 18.0,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
@@ -565,12 +564,12 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   ],
                                                 ),
                                                 const SizedBox(
-                                                  height: 20.0,
+                                                  height: 10.0,
                                                 ),
                                                 Text(
                                                   totalCampaigns.toString() + " campaigns",
                                                   style: const TextStyle(
-                                                    fontSize: 32,
+                                                    fontSize: 26,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 )
@@ -602,7 +601,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                         "Ongoing Campaigns",
                                                         style: TextStyle(
                                                           color: Colors.red,
-                                                          fontSize: 20.0,
+                                                          fontSize: 18.0,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
@@ -610,13 +609,13 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   ],
                                                 ),
                                                 const SizedBox(
-                                                  height: 20.0,
+                                                  height: 10.0,
                                                 ),
                                                 Text(
                                                   ongoingCampaign.toString() + " campaigns",
                                                   style: const TextStyle(
                                                     color: Colors.red,
-                                                    fontSize: 32,
+                                                    fontSize: 26,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 )
@@ -641,12 +640,12 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       color: Colors.amber,
                                                     ),
                                                     SizedBox(
-                                                      width: 15.0,
+                                                      width: 10.0,
                                                     ),
                                                     Text(
                                                       "Total Clients",
                                                       style: TextStyle(
-                                                        fontSize: 22.0,
+                                                        fontSize: 18.0,
                                                         color: Colors.amber,
                                                         fontWeight: FontWeight.bold,
                                                       ),
@@ -659,7 +658,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   totalClients.toString() + " Clients",
                                                   style: const TextStyle(
-                                                    fontSize: 32,
+                                                    fontSize: 28,
                                                     color: Colors.amber,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -685,13 +684,13 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       color: Colors.green,
                                                     ),
                                                     SizedBox(
-                                                      width: 15.0,
+                                                      width: 8.0,
                                                     ),
                                                     Expanded(
                                                       child: Text(
                                                         'Total Earning (৳)',
                                                         style: TextStyle(
-                                                          fontSize: 20.0,
+                                                          fontSize: 17.0,
                                                           color: Colors.green,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -705,7 +704,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   '৳${totalEarning.toStringAsFixed(2)}',
                                                   style: const TextStyle(
-                                                    fontSize: 30,
+                                                    fontSize: 28,
                                                     color: Colors.green,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -737,7 +736,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       child: Text(
                                                         'Total Due (৳)',
                                                         style: TextStyle(
-                                                          fontSize: 20.0,
+                                                          fontSize: 18.0,
                                                           color: Colors.red,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -751,7 +750,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   '৳${totalDue.toStringAsFixed(2)}',
                                                   style: const TextStyle(
-                                                    fontSize: 30,
+                                                    fontSize: 28,
                                                     color: Colors.red,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -783,7 +782,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                       child: Text(
                                                         'Gross profit (৳)',
                                                         style: TextStyle(
-                                                          fontSize: 20.0,
+                                                          fontSize: 18.0,
                                                           color: Colors.purple,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -797,7 +796,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                 Text(
                                                   '৳${grossProfit.toStringAsFixed(2)}',
                                                   style: const TextStyle(
-                                                    fontSize: 30,
+                                                    fontSize: 28,
                                                     color: Colors.purple,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -1181,132 +1180,132 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                         Row(
-                           children: [
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   Navigator.push(
-                                       context,
-                                       MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Add Campaign Data",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                             SizedBox(
-                               width: width * 0.01,
-                             ),
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   showDialog(
-                                       context: context,
-                                       builder: (context){
-                                         return AddClientDialog(title: "Add Client");
-                                       }
-                                   );
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: width * 0.13,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => DataInputForm(totalCampaigns: totalCampaigns,)));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Campaign Data",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return AddClientDialog(title: "Add Client");
+                                        }
+                                    );
 
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Add Client",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                             SizedBox(
-                               width: width * 0.01,
-                             ),
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   selectedClient = null;
-                                   final status = await showTextDialog(
-                                     context,
-                                     title: 'Delete client',
-                                     value: '',
-                                   );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Add Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    selectedClient = null;
+                                    final status = await showTextDialog(
+                                      context,
+                                      title: 'Delete client',
+                                      value: '',
+                                    );
 
-                                   if (status != null) {
-                                     var snackBar = const SnackBar(
-                                         content: Text('Client deleted'));
-                                     ScaffoldMessenger.of(context)
-                                         .showSnackBar(snackBar);
-                                     var snapshot = await FirebaseFirestore.instance
-                                         .collection('clientList')
-                                         .where('name', isEqualTo: status)
-                                         .get();
-                                     await snapshot.docs.first.reference.delete();
-                                   }
-                                   setState(() {});
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Delete Client",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                             SizedBox(
-                               width: width * 0.01,
-                             ),
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   selectedClient = null;
-                                   showDialog(
-                                       context: context,
-                                       builder: (context){
-                                         return AddClientDialog(title: "Change AIT");
-                                       }
-                                   );
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Change AIT",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                           ],
-                         ),
-                         InkWell(
+                                    if (status != null) {
+                                      var snackBar = const SnackBar(
+                                          content: Text('Client deleted'));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+                                      var snapshot = await FirebaseFirestore.instance
+                                          .collection('clientList')
+                                          .where('name', isEqualTo: status)
+                                          .get();
+                                      await snapshot.docs.first.reference.delete();
+                                    }
+                                    setState(() {});
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Delete Client",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width * 0.01,
+                              ),
+                              SizedBox(
+                                width: width * 0.11,
+                                height: 45,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    selectedClient = null;
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return AddClientDialog(title: "Change AIT");
+                                        }
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: (Colors.blue),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10))),
+                                  child: Text(
+                                    "Change AIT",
+                                    style: GoogleFonts.raleway(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          InkWell(
                             onTap: (){
                               search = null;
                               selectedClient = null;

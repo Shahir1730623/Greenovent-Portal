@@ -64,20 +64,20 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
           Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
         ),
 
-        DataCell(
-          SizedBox(
-            width: 200,
-            child: InkWell(
-              onTap: (){
-                launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
-              },
-              child: Text(documentSnapshot.data().toString().contains('campaignLink') ? documentSnapshot.get('campaignLink') : "",
-                overflow: TextOverflow.clip,
-                softWrap: true,
-              ),
-            ),
-          ),
-        ),
+        // DataCell(
+        //   SizedBox(
+        //     width: 200,
+        //     child: InkWell(
+        //       onTap: (){
+        //         launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
+        //       },
+        //       child: Text(documentSnapshot.data().toString().contains('campaignLink') ? documentSnapshot.get('campaignLink') : "",
+        //         overflow: TextOverflow.clip,
+        //         softWrap: true,
+        //       ),
+        //     ),
+        //   ),
+        // ),
 
         DataCell(
           Text(documentSnapshot.data().toString().contains('description') ? documentSnapshot.get('description') : ""),
@@ -97,22 +97,25 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
               value: documentSnapshot.get('sales').toString(),
             );
 
-            if(updatedSales != null){
+            if(updatedSales!=null){
               double sales = double.parse(updatedSales);
               double ASF = sales * 0.1;
               double subTotal = sales + ASF;
               double amountVat = subTotal * 0.05;
+              double projectGoal = subTotal + amountVat;
               double AIT = subTotal * (documentSnapshot.get('AITPercentage') / 100);
               double totalExpense = documentSnapshot.get('expense') + amountVat + AIT;
-              double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
+              double grossProfit = projectGoal - totalExpense;
 
               documentSnapshot.reference.update({'sales': sales});
               documentSnapshot.reference.update({'ASF': ASF});
               documentSnapshot.reference.update({'subTotal': subTotal});
               documentSnapshot.reference.update({'amountVat': amountVat});
+              documentSnapshot.reference.update({'projectGoal': projectGoal});
               documentSnapshot.reference.update({'AIT': AIT});
               documentSnapshot.reference.update({'totalExpense' : totalExpense});
               documentSnapshot.reference.update({'grossProfit' : grossProfit});
+              documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
             }
           },
         ),
@@ -137,7 +140,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
               value: documentSnapshot.get('AIT').toString(),
             );
 
-            if(updatedAIT != null){
+            if(updatedAIT!=null){
               double AIT = double.parse(updatedAIT);
               double totalExpense = documentSnapshot.get('expense') + documentSnapshot.get('amountVat') + AIT;
               double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
@@ -145,7 +148,9 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
               documentSnapshot.reference.update({'AIT': AIT});
               documentSnapshot.reference.update({'totalExpense' : totalExpense});
               documentSnapshot.reference.update({'grossProfit' : grossProfit});
+              documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
             }
+
 
           },
         ),
@@ -170,6 +175,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                 documentSnapshot.reference.update({'expense': expense});
                 documentSnapshot.reference.update({'totalExpense' : totalExpense});
                 documentSnapshot.reference.update({'grossProfit' : grossProfit});
+                documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
               }
 
             }
@@ -196,8 +202,10 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
               title: 'Change bill sent',
               value: documentSnapshot.get('billSent').toString(),
             );
+
             if(billSent!=null){
               documentSnapshot.reference.update({'billSent': double.parse(billSent)});
+              documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
             }
 
           },
@@ -213,8 +221,28 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
               title: 'Change bill received',
               value: documentSnapshot.get('billReceived').toString(),
             );
+
+            // if(currentUserInfo?.userType == "Super Admin"){
+            //   if(billReceived!=null){
+            //     documentSnapshot.reference.update({'billReceived': double.parse(billReceived)});
+            //   }
+            // }
+            //
+            // else{
+            //   if(billReceived!=null && documentSnapshot.get('isEditable') == "allow"){
+            //     documentSnapshot.reference.update({'billReceived': double.parse(billReceived)});
+            //     documentSnapshot.reference.update({'isEditable': 'deny'});
+            //   }
+            //
+            //   else if (documentSnapshot.get('isEditable') == "deny"){
+            //     var snackBar = const SnackBar(content: Text('Awaiting edit permission from super admin'));
+            //     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            //   }
+            // }
+
             if(billReceived!=null){
               documentSnapshot.reference.update({'billReceived': double.parse(billReceived)});
+              documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
             }
 
           },
@@ -260,10 +288,36 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
             );
             if(status!=null){
               documentSnapshot.reference.update({'status': status});
+              documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
             }
 
           },
         ),
+
+        // (currentUserInfo?.userType == "Super Admin") ?
+        // DataCell(
+        //   Text(documentSnapshot.data().toString().contains('isEditable')
+        //       ? documentSnapshot.get('isEditable')
+        //       : ''),
+        //   showEditIcon: true,
+        //   onTap: () async {
+        //     final isEditableStatus = await showTextDialog(
+        //       context,
+        //       title: 'Change Edit Status',
+        //       value: documentSnapshot.get('isEditable'),
+        //     );
+        //     if(isEditableStatus!=null){
+        //       documentSnapshot.reference.update({'isEditable': isEditableStatus});
+        //     }
+        //
+        //   },
+        // ) :
+        //
+        // DataCell(
+        //   Text(documentSnapshot.data().toString().contains('isEditable')
+        //       ? documentSnapshot.get('isEditable')
+        //       : ''),
+        // ),
 
         DataCell(
           Text(documentSnapshot.data().toString().contains('lastEditedBy')

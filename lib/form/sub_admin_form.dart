@@ -27,7 +27,7 @@ class _DataInputFormState extends State<DataInputForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController campaignNameTextEditingController = TextEditingController();
   TextEditingController campaignDescriptionTextEditingController = TextEditingController();
-  TextEditingController campaignLinkTextEditingController = TextEditingController();
+  // TextEditingController campaignLinkTextEditingController = TextEditingController();
   TextEditingController projectGoalTextEditingController = TextEditingController();
   TextEditingController salesTextEditingController = TextEditingController();
   TextEditingController expenseTextEditingController = TextEditingController();
@@ -183,16 +183,16 @@ class _DataInputFormState extends State<DataInputForm> {
   }
 
   saveDataToDatabase(){
-    double projectGoal = double.parse(projectGoalTextEditingController.text.trim());
     double sales = double.parse(salesTextEditingController.text.trim());
     double ASF = double.parse(salesTextEditingController.text.trim()) * 0.10;
     double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
     double amountVat = subTotal * 0.15;
+    double projectGoal = subTotal + amountVat;
     double AIT = subTotal * (initialAit! / 100);
     double AITPercentage = initialAit!;
     double expense = double.parse(expenseTextEditingController.text.trim());
     double totalExpense = double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT;
-    double grossProfit = double.parse(projectGoalTextEditingController.text.trim()) - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT);
+    double grossProfit = projectGoal - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT);
     double billSent = double.parse(billSentTextEditingController.text.trim());
     double billReceived = double.parse(billReceivedTextEditingController.text.trim());
 
@@ -212,7 +212,6 @@ class _DataInputFormState extends State<DataInputForm> {
       'billNo' : "123${widget.totalCampaigns + 1}",
       'campaignName' : campaignNameTextEditingController.text.trim(),
       'description' : campaignDescriptionTextEditingController.text.trim(),
-      'campaignLink' : campaignLinkTextEditingController.text.trim(),
       'client' : selectedClient.toString(),
       'projectGoal' : projectGoal,
       'sales' : sales,
@@ -242,7 +241,6 @@ class _DataInputFormState extends State<DataInputForm> {
       pickedFile = null;
     });
     campaignNameTextEditingController.clear();
-    campaignLinkTextEditingController.clear();
     projectGoalTextEditingController.clear();
     salesTextEditingController.clear();
     expenseTextEditingController.clear();
@@ -374,61 +372,61 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
-                              // Campaign Link
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Post Link',
-                                    style: GoogleFonts.raleway(
-                                      fontSize: 12.0,
-                                      color: AppColors.blueDarkColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6.0),
-                                  TextFormField(
-                                    controller: campaignLinkTextEditingController,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                    decoration: InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      hintText: "Post Link",
-                                      suffixIcon: campaignLinkTextEditingController.text.isEmpty
-                                          ? Container(width: 0)
-                                          : IconButton(
-                                        icon: const Icon(Icons.close),
-                                        onPressed: () =>
-                                            campaignLinkTextEditingController.clear(),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                      focusedBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
-                                      ),
-                                      hintStyle:
-                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                      labelStyle:
-                                      const TextStyle(
-                                          color: AppColors.blueDarkColor, fontSize: 15),
-                                    ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(height: height * 0.025),
-
-                                ],
-                              ),
+                              // // Campaign Link
+                              // Column(
+                              //   crossAxisAlignment: CrossAxisAlignment.start,
+                              //   children: [
+                              //     Text(
+                              //       'Post Link',
+                              //       style: GoogleFonts.raleway(
+                              //         fontSize: 12.0,
+                              //         color: AppColors.blueDarkColor,
+                              //         fontWeight: FontWeight.w700,
+                              //       ),
+                              //     ),
+                              //     const SizedBox(height: 6.0),
+                              //     TextFormField(
+                              //       controller: campaignLinkTextEditingController,
+                              //       style: const TextStyle(
+                              //         color: Colors.black,
+                              //       ),
+                              //       decoration: InputDecoration(
+                              //         fillColor: Colors.white,
+                              //         filled: true,
+                              //         hintText: "Post Link",
+                              //         suffixIcon: campaignLinkTextEditingController.text.isEmpty
+                              //             ? Container(width: 0)
+                              //             : IconButton(
+                              //           icon: const Icon(Icons.close),
+                              //           onPressed: () =>
+                              //               campaignLinkTextEditingController.clear(),
+                              //         ),
+                              //         enabledBorder: OutlineInputBorder(
+                              //           borderSide: BorderSide(
+                              //               color: Colors.grey.shade300),
+                              //           borderRadius: BorderRadius.circular(10.0),
+                              //         ),
+                              //         focusedBorder: const UnderlineInputBorder(
+                              //           borderSide: BorderSide(color: Colors.blue),
+                              //         ),
+                              //         hintStyle:
+                              //         const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                              //         labelStyle:
+                              //         const TextStyle(
+                              //             color: AppColors.blueDarkColor, fontSize: 15),
+                              //       ),
+                              //       validator: (value) {
+                              //         if (value!.isEmpty) {
+                              //           return "The field is empty";
+                              //         } else {
+                              //           return null;
+                              //         }
+                              //       },
+                              //     ),
+                              //     SizedBox(height: height * 0.025),
+                              //
+                              //   ],
+                              // ),
 
                               // Campaign Description
                               Column(
@@ -593,63 +591,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                       fillColor: Colors.white,
                                       filled: true,
                                       labelText: "AIT(%)",
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                      focusedBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
-                                      ),
-                                      hintStyle:
-                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                      labelStyle:
-                                      const TextStyle(
-                                          color: AppColors.blueDarkColor, fontSize: 15),
-                                    ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(height: height * 0.025),
-
-                                ],
-                              ),
-
-                              // Project Goal
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Project Goal',
-                                    style: GoogleFonts.raleway(
-                                      fontSize: 12.0,
-                                      color: AppColors.blueDarkColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6.0),
-                                  TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    controller: projectGoalTextEditingController,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                    decoration: InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      labelText: "Project Goal",
-                                      suffixIcon: projectGoalTextEditingController.text.isEmpty
-                                          ? Container(width: 0)
-                                          : IconButton(
-                                        icon: const Icon(Icons.close),
-                                        onPressed: () =>
-                                            projectGoalTextEditingController.clear(),
-                                      ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                             color: Colors.grey.shade300),
