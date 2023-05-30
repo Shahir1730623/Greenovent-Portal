@@ -68,21 +68,6 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
           Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
         ),
 
-        // DataCell(
-        //   SizedBox(
-        //     width: 200,
-        //     child: InkWell(
-        //       onTap: (){
-        //         launchUrl(Uri.parse(documentSnapshot.get('campaignLink')));
-        //       },
-        //       child: Text(documentSnapshot.data().toString().contains('campaignLink') ? documentSnapshot.get('campaignLink') : "",
-        //         overflow: TextOverflow.clip,
-        //         softWrap: true,
-        //       ),
-        //     ),
-        //   ),
-        // ),
-
         DataCell(
           Text(documentSnapshot.data().toString().contains('description') ? documentSnapshot.get('description') : ""),
         ),
@@ -357,8 +342,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                 ),
               ],
             ),
-          ) ??
-              false;
+          );
         })
       ]);
     }).toList();

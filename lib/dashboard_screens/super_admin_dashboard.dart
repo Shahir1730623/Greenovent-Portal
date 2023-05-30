@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:greenovent_portal/super_admin_screens/medium_large_screen.dart';
-import 'package:greenovent_portal/super_admin_screens/medium_screen.dart';
-import 'package:greenovent_portal/super_admin_screens/small_screen.dart';
-import '../super_admin_screens/large_screen.dart';
+import '../admin_screens/large_screen.dart';
+import '../admin_screens/medium_large_screen.dart';
+import '../admin_screens/medium_screen.dart';
+import '../admin_screens/medium_small_screen.dart';
+import '../admin_screens/small_screen.dart';
 import '../widget/responsive_layout.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
@@ -28,6 +29,9 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
 
       (ResponsiveWidget.isMediumScreen(context)) ?
       const MediumScreenWidget():
+
+      (ResponsiveWidget.isMediumSmallScreen(context)) ?
+      const MediumSmallScreenWidget():
 
       (ResponsiveWidget.isMediumLargeScreen(context)) ?
       const MediumLargeScreenWidget() :

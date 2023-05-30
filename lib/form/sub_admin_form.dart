@@ -27,7 +27,6 @@ class _DataInputFormState extends State<DataInputForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController campaignNameTextEditingController = TextEditingController();
   TextEditingController campaignDescriptionTextEditingController = TextEditingController();
-  // TextEditingController campaignLinkTextEditingController = TextEditingController();
   TextEditingController projectGoalTextEditingController = TextEditingController();
   TextEditingController salesTextEditingController = TextEditingController();
   TextEditingController expenseTextEditingController = TextEditingController();
@@ -230,7 +229,7 @@ class _DataInputFormState extends State<DataInputForm> {
       'month' : DateFormat.MMMM().format(startingDate),
       'pdfLink' : pdfFileUrl,
       'status' : "Ongoing",
-      'lastEditedBy' : currentUserInfo?.name
+      'lastEditedBy' : currentUserInfo?.name ?? ""
     };
 
     FirebaseFirestore.instance.collection('campaignData').doc(idGenerator()).set(data);
