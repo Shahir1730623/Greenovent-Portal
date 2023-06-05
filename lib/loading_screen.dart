@@ -7,7 +7,7 @@ import 'package:greenovent_portal/authentication_screens/login_screen.dart';
 import 'package:greenovent_portal/dashboard_screens/super_admin_dashboard.dart';
 import 'package:greenovent_portal/widget/responsive_layout.dart';
 import 'app_colors.dart';
-import 'assistant_method.dart';
+import 'assistant_method/assistant_method.dart';
 import 'global.dart';
 
 class LoadingScreen extends StatefulWidget {

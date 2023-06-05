@@ -8,7 +8,7 @@ import 'package:greenovent_portal/authentication_screens/change_password.dart';
 import 'package:greenovent_portal/authentication_screens/registration_screen.dart';
 import 'package:greenovent_portal/loading_screen.dart';
 import 'package:greenovent_portal/widget/responsive_layout.dart';
-import '../assistant_method.dart';
+import '../assistant_method/assistant_method.dart';
 import '../global.dart';
 
 class LoginScreen extends StatefulWidget {

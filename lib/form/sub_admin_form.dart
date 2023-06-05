@@ -3,17 +3,16 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:greenovent_portal/assistant_method/assistant_method.dart';
 import 'package:greenovent_portal/global.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart' as path;
 import '../app_colors.dart';
 import '../widget/responsive_layout.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class DataInputForm extends StatefulWidget {
   int totalCampaigns = 0;
@@ -35,7 +34,6 @@ class _DataInputFormState extends State<DataInputForm> {
   TextEditingController aitTextEditingController = TextEditingController();
 
   var selectedClient;
-  String? pickedFileType;
 
   List<String> degreeList = [];
   DateTime startingDate = DateTime.now();
@@ -46,6 +44,7 @@ class _DataInputFormState extends State<DataInputForm> {
   bool flag = false, flag2 = false;
 
   //PlatformFile? pickedFile;
+  String? pickedFileType;
   Uint8List? pickedFile;
   var pdfFileUrl;
   UploadTask? uploadTask;
@@ -94,7 +93,7 @@ class _DataInputFormState extends State<DataInputForm> {
   Future<void> uploadFile() async {
     late firebase_storage.Reference reference;
     //final path = 'files/${pickedFile!.}';
-    reference = firebase_storage.FirebaseStorage.instance.ref('campaignPdfs/'+ filename!,);
+    reference = firebase_storage.FirebaseStorage.instance.ref('campaignPdfs/${filename!}',);
 
     // Upload the image to firebase storage
     try{
@@ -109,9 +108,6 @@ class _DataInputFormState extends State<DataInputForm> {
     catch(e){
       print(e.toString());
     }
-
-    //String url = await reference.getDownloadURL();
-    //return url;
   }
 
   pickStartingDate() async {
@@ -181,7 +177,19 @@ class _DataInputFormState extends State<DataInputForm> {
 
   }
 
-  saveDataToDatabase(){
+  Future<int> getCountOfClientData() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('campaignData')
+        .where('client', isEqualTo: selectedClient.toString())
+        .get();
+
+    int count = snapshot.docs.length;
+    debugPrint('Number of Documents: $count');
+    return count;  // This will be 0 if no documents match the query.
+  }
+
+
+  saveDataToDatabase() async{
     double sales = double.parse(salesTextEditingController.text.trim());
     double ASF = double.parse(salesTextEditingController.text.trim()) * 0.10;
     double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
@@ -189,26 +197,34 @@ class _DataInputFormState extends State<DataInputForm> {
     double projectGoal = subTotal + amountVat;
     double AIT = subTotal * (initialAit! / 100);
     double AITPercentage = initialAit!;
-    double expense = double.parse(expenseTextEditingController.text.trim());
-    double totalExpense = double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT;
-    double grossProfit = projectGoal - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT);
-    double billSent = double.parse(billSentTextEditingController.text.trim());
-    double billReceived = double.parse(billReceivedTextEditingController.text.trim());
+    double expense = double.tryParse(expenseTextEditingController.text.trim()) ?? 0;
+    double totalExpense = expenseTextEditingController.text.trim().isNotEmpty ? double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT : 0;
+    double grossProfit = expenseTextEditingController.text.trim().isNotEmpty ? projectGoal - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT) : 0;
+    double billSent = double.tryParse(billSentTextEditingController.text.trim()) ?? 0;
+    double billReceived = double.tryParse(billReceivedTextEditingController.text.trim()) ?? 0;
 
-    projectGoal = double.parse(projectGoal.toStringAsFixed(2));
-    sales = double.parse(sales.toStringAsFixed(2));
-    ASF = double.parse(ASF.toStringAsFixed(2));
-    subTotal = double.parse(subTotal.toStringAsFixed(2));
-    amountVat = double.parse(amountVat.toStringAsFixed(2));
-    AIT = double.parse(AIT.toStringAsFixed(2));
-    expense = double.parse(expense.toStringAsFixed(2));
-    totalExpense = double.parse(totalExpense.toStringAsFixed(2));
-    grossProfit = double.parse(grossProfit.toStringAsFixed(2));
-    billSent = double.parse(billSent.toStringAsFixed(2));
-    billReceived = double.parse(billReceived.toStringAsFixed(2));
+    projectGoal = double.parse(projectGoal.toStringAsFixed(1));
+    sales = double.parse(sales.toStringAsFixed(1));
+    ASF = double.parse(ASF.toStringAsFixed(1));
+    subTotal = double.parse(subTotal.toStringAsFixed(1));
+    amountVat = double.parse(amountVat.toStringAsFixed(1));
+    AIT = double.parse(AIT.toStringAsFixed(1));
+    expense = double.parse(expense.toStringAsFixed(1));
+    totalExpense = double.parse(totalExpense.toStringAsFixed(1));
+    grossProfit = double.parse(grossProfit.toStringAsFixed(1));
+    billSent = double.parse(billSent.toStringAsFixed(1));
+    billReceived = double.parse(billReceived.toStringAsFixed(1));
+
+    int countClientData = await getCountOfClientData();
+
+    String clientAbbr = selectedClient.toString()
+        .split(' ')
+        .map((word) => word.isNotEmpty ? word[0] : '')
+        .join('');
 
     Map<String,dynamic> data = {
-      'billNo' : "123${widget.totalCampaigns + 1}",
+      'slNo' : "${widget.totalCampaigns + 1}",
+      'billNo' : 'GR/$clientAbbr-${countClientData + 1}/${AssistantMethods.getTodayDate()}',
       'campaignName' : campaignNameTextEditingController.text.trim(),
       'description' : campaignDescriptionTextEditingController.text.trim(),
       'client' : selectedClient.toString(),
@@ -224,6 +240,7 @@ class _DataInputFormState extends State<DataInputForm> {
       'grossProfit' : grossProfit,
       'billSent' : billSent,
       'billReceived' : billReceived,
+      'billStatus' : "Not Sent",
       'startingDate' : formattedStartingDate,
       'endingDate' : formattedEndingDate,
       'month' : DateFormat.MMMM().format(startingDate),
@@ -371,63 +388,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
-                              // // Campaign Link
-                              // Column(
-                              //   crossAxisAlignment: CrossAxisAlignment.start,
-                              //   children: [
-                              //     Text(
-                              //       'Post Link',
-                              //       style: GoogleFonts.raleway(
-                              //         fontSize: 12.0,
-                              //         color: AppColors.blueDarkColor,
-                              //         fontWeight: FontWeight.w700,
-                              //       ),
-                              //     ),
-                              //     const SizedBox(height: 6.0),
-                              //     TextFormField(
-                              //       controller: campaignLinkTextEditingController,
-                              //       style: const TextStyle(
-                              //         color: Colors.black,
-                              //       ),
-                              //       decoration: InputDecoration(
-                              //         fillColor: Colors.white,
-                              //         filled: true,
-                              //         hintText: "Post Link",
-                              //         suffixIcon: campaignLinkTextEditingController.text.isEmpty
-                              //             ? Container(width: 0)
-                              //             : IconButton(
-                              //           icon: const Icon(Icons.close),
-                              //           onPressed: () =>
-                              //               campaignLinkTextEditingController.clear(),
-                              //         ),
-                              //         enabledBorder: OutlineInputBorder(
-                              //           borderSide: BorderSide(
-                              //               color: Colors.grey.shade300),
-                              //           borderRadius: BorderRadius.circular(10.0),
-                              //         ),
-                              //         focusedBorder: const UnderlineInputBorder(
-                              //           borderSide: BorderSide(color: Colors.blue),
-                              //         ),
-                              //         hintStyle:
-                              //         const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                              //         labelStyle:
-                              //         const TextStyle(
-                              //             color: AppColors.blueDarkColor, fontSize: 15),
-                              //       ),
-                              //       validator: (value) {
-                              //         if (value!.isEmpty) {
-                              //           return "The field is empty";
-                              //         } else {
-                              //           return null;
-                              //         }
-                              //       },
-                              //     ),
-                              //     SizedBox(height: height * 0.025),
-                              //
-                              //   ],
-                              // ),
-
-                              // Campaign Description
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -717,13 +677,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                       const TextStyle(
                                           color: AppColors.blueDarkColor, fontSize: 15),
                                     ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
                                   ),
                                   SizedBox(height: height * 0.025),
                                 ],
@@ -773,13 +726,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                       const TextStyle(
                                           color: AppColors.blueDarkColor, fontSize: 15),
                                     ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
                                   ),
                                   SizedBox(height: height * 0.025),
                                 ],
@@ -829,13 +775,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                       const TextStyle(
                                           color: AppColors.blueDarkColor, fontSize: 15),
                                     ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
                                   ),
                                   SizedBox(height: height * 0.025),
                                 ],
@@ -868,7 +807,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                         pickStartingDate();
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        primary: (Colors.white),
+                                        backgroundColor: (Colors.white),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
                                       ),
                                       child: Text(
@@ -910,7 +849,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                         pickEndingDate();
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        primary: (Colors.white),
+                                        backgroundColor: (Colors.white),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
                                       ),
                                       child: Text(
@@ -946,7 +885,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                   ) ,
                                   child: Row(
                                       children: [
-                                        Icon(Icons.add,size: 30),
+                                        const Icon(Icons.add,size: 30),
 
                                         const SizedBox(width: 10,),
 
@@ -1026,7 +965,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                     color: Colors.transparent,
                                     child: InkWell(
                                       onTap: () async {
-                                        if (_formKey.currentState!.validate()){
+                                        if (_formKey.currentState!.validate() && formattedStartingDate!= null){
                                           showDialog(
                                               context: context,
                                               barrierDismissible: false,
@@ -1035,13 +974,20 @@ class _DataInputFormState extends State<DataInputForm> {
                                               }
                                           );
 
-                                          await uploadFile();
+                                          if(pickedFile!= null){
+                                            await uploadFile();
+                                          }
                                           await saveDataToDatabase();
 
-                                          Timer(const Duration(seconds: 3), () {
+                                          Timer(const Duration(seconds: 1), () {
                                             Navigator.pop(context);
                                             //Navigator.push(context, MaterialPageRoute(builder: (context) => const Initialization()));
                                           });
+                                        }
+
+                                        else if(formattedStartingDate == null){
+                                          var snackBar = const SnackBar(content: Text('Please select starting date'));
+                                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
                                         }
 
                                         else{

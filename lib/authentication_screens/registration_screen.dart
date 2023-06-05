@@ -53,7 +53,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         "email" : emailTextEditingController.text,
         "phone" : "+88${phoneNumberTextEditingController.text}",
         "userPosition" : selectedUserType,
-        "userType" : (selectedUserType == "Digital Head" || selectedUserType == "Executive Director"),
+        "userType" : (selectedUserType == "Digital Head" || selectedUserType == "Executive Director") ? "Super Admin" : "Sub Admin",
         };
 
         FirebaseFirestore.instance.collection('users').doc(currentFirebaseUser!.uid).set(data);

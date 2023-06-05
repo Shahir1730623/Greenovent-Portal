@@ -54,7 +54,7 @@ dependencies:
   image_network:
   dropdown_button2:
   url_launcher:
-
+  data_tables:
 dev_dependencies:
   flutter_test:
     sdk: flutter

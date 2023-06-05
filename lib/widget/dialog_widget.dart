@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../app_colors.dart';
-
 Future<T?> showTextDialog<T>(
     BuildContext context, {
       required String title,
@@ -33,9 +31,11 @@ class TextDialogWidget extends StatefulWidget {
 class _TextDialogWidgetState extends State<TextDialogWidget> {
   var selectedClient;
   String? selectedStatus;
+  String? selectedBillStatus;
   String? selectedEditStatus;
 
   List<String> statusList = ["Ongoing", "Completed"];
+  List<String> billStatusList = ["Not Sent", "Processing","Sent","Received"];
   List<String> editStatusList = ['allow', 'deny'];
 
 
@@ -181,6 +181,65 @@ class _TextDialogWidgetState extends State<TextDialogWidget> {
         ElevatedButton(
           child: const Text('Done'),
           onPressed: () => Navigator.of(context).pop(selectedEditStatus),
+        )
+      ],
+
+    ):
+    (widget.title == "Change Bill Status") ?
+    AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: width * 0.2,
+        child: DropdownButtonFormField(
+          items: billStatusList.map((status) {
+            return DropdownMenuItem(
+              value: status,
+              child: Text(status),
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            isDense: true,
+            enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    width: 1.5,
+                    color: Colors.grey.shade300),
+                borderRadius:
+                BorderRadius.circular(10)),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  width: 1.5,
+                  color: Colors.grey.shade300),
+            ),
+          ),
+          iconSize: 26,
+          dropdownColor: Colors.white,
+          isExpanded: true,
+          value: selectedBillStatus,
+          hint: const Text(
+            "Select bill status",
+            style: TextStyle(
+              fontSize: 15.0,
+              color: Colors.black,
+            ),
+          ),
+          onChanged: (newValue) {
+            setState(() {
+              selectedBillStatus = newValue;
+            });
+          },
+          validator: (value) {
+            if (value == null) {
+              return "Select bill status";
+            } else {
+              return null;
+            }
+          },
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+          child: const Text('Done'),
+          onPressed: () => Navigator.of(context).pop(selectedBillStatus),
         )
       ],
 
