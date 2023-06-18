@@ -32,15 +32,19 @@ class _DataInputFormState extends State<DataInputForm> {
   TextEditingController billSentTextEditingController = TextEditingController();
   TextEditingController billReceivedTextEditingController = TextEditingController();
   TextEditingController aitTextEditingController = TextEditingController();
+  TextEditingController asfTextEditingController = TextEditingController();
 
   var selectedClient;
+  double? selectedVat;
 
   List<String> degreeList = [];
+  List<double> vatList = [7.5,15];
   DateTime startingDate = DateTime.now();
   DateTime endingDate = DateTime.now();
   String? formattedStartingDate,formattedEndingDate;
   int startingDateCounter = 0, endingDateCounter = 0;
   double? initialAit;
+  double? initialASF;
   bool flag = false, flag2 = false;
 
   //PlatformFile? pickedFile;
@@ -174,6 +178,21 @@ class _DataInputFormState extends State<DataInputForm> {
     setState(() {
       aitTextEditingController.text = initialAit.toString();
     });
+  }
+
+  getASF() async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('clientList')
+        .where('name', isEqualTo: selectedClient)
+        .get();
+
+    for (var result in snapshot.docs) {
+      initialASF = (result.data()['ASF']);
+    }
+
+    setState(() {
+      asfTextEditingController.text = initialASF.toString();
+    });
 
   }
 
@@ -264,6 +283,7 @@ class _DataInputFormState extends State<DataInputForm> {
     var snackBar = const SnackBar(content: Text('Data uploaded successfully'));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -388,6 +408,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
+                              // Campaign Description
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -485,8 +506,9 @@ class _DataInputFormState extends State<DataInputForm> {
                                                   borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
                                                   borderRadius: BorderRadius.circular(10)
                                               ),
-                                              focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
+                                              focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(width: 1.5, color: Colors.grey.shade300),
+                                                  borderRadius: BorderRadius.circular(10)
                                               ),
                                             ) ,
                                             iconSize: 26,
@@ -507,7 +529,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                               });
 
                                               getAit();
-
+                                              getASF();
                                             },
 
                                             validator: (value){
@@ -527,6 +549,131 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
+                              // Vat(%)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Vat%',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10)
+                                    ),
+                                    child:  DropdownButtonFormField(
+                                      items: vatList.map((vat) {
+                                        return DropdownMenuItem(
+                                          value: vat,
+                                          child: Text(
+                                            vat.toString(),
+                                            style: const TextStyle(color: AppColors.blueDarkColor),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                width: 1.5,
+                                                color: Colors.grey.shade300),
+                                            borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              width: 1.5,
+                                              color: Colors.grey.shade300),
+                                        ),
+                                      ),
+                                      iconSize: 26,
+                                      dropdownColor: Colors.white,
+                                      isExpanded: true,
+                                      value: selectedVat,
+                                      hint: const Text(
+                                        "Select vat(%)",
+                                        style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: AppColors.blueDarkColor,
+                                        ),
+                                      ),
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          selectedVat = newValue;
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null) {
+                                          return "Select vat(%)";
+                                        } else {
+                                          return null;
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  SizedBox(height: height * 0.025),
+                                ],
+                              ),
+
+                              // ASF
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'AIT %',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    readOnly: true,
+                                    keyboardType: TextInputType.number,
+                                    controller: asfTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "ASF(%)",
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+
+                                ],
+                              ),
+
                               // AIT
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,6 +688,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                   ),
                                   const SizedBox(height: 6.0),
                                   TextFormField(
+                                    readOnly: true,
                                     keyboardType: TextInputType.number,
                                     controller: aitTextEditingController,
                                     style: const TextStyle(
@@ -555,8 +703,10 @@ class _DataInputFormState extends State<DataInputForm> {
                                             color: Colors.grey.shade300),
                                         borderRadius: BorderRadius.circular(10.0),
                                       ),
-                                      focusedBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
                                       ),
                                       hintStyle:
                                       const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),

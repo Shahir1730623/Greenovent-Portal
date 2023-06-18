@@ -8,6 +8,8 @@ import '../assistant_method/assistant_method.dart';
 import '../authentication_screens/login_screen.dart';
 import '../form/sub_admin_form.dart';
 import '../global.dart';
+import '../model/data_model.dart';
+import '../model/table_data.dart';
 import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget_add_client.dart';
 
@@ -45,8 +47,61 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
   totalCampaigns = 0,
   pastCampaigns = 0,
   ongoingCampaign = 0;
-
   int? sortColumnIndex;
+
+  // Neq
+  final int documentLimit = 10; // Determines the number of rows per page
+  DocumentSnapshot? lastVisible; // Last document fetched
+  bool moreDocumentsAvailable = true; // Indicates if more documents are available to fetch
+  List<QueryDocumentSnapshot> documentList = []; // Documents for the current page
+  final _scrollController = ScrollController();
+
+  getDocuments() async {
+    if (!moreDocumentsAvailable) return;
+
+    Query query = FirebaseFirestore.instance.collection('campaignData')
+        .where('client', isEqualTo: selectedClient)
+        .where('month', isEqualTo: selectedMonth)
+        .orderBy('billNo')
+        .where('billNo', isGreaterThanOrEqualTo: search ?? '')
+        .where('billNo', isLessThan: (search ?? '') + 'z')
+        .limit(documentLimit);
+
+    if (lastVisible != null) {
+      query = query.startAfterDocument(lastVisible!);
+    }
+
+    var snapshots = await query.get();
+    if (snapshots.docs.length < documentLimit) moreDocumentsAvailable = false;
+    if (snapshots.docs.isNotEmpty) {
+      lastVisible = snapshots.docs[snapshots.docs.length - 1];
+      setState(() {
+        documentList.addAll(snapshots.docs);
+      });
+    }
+  }
+
+  _scrollListener() {
+    if (_scrollController.position.atEdge) {
+      if (_scrollController.position.pixels != 0) getDocuments();
+    }
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+    getDocuments();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -981,6 +1036,35 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                  ),
                                ),
                              ),
+                             SizedBox(
+                               width: width * 0.01,
+                             ),
+                             SizedBox(
+                               width: width * 0.11,
+                               height: 45,
+                               child: ElevatedButton(
+                                 onPressed: () async {
+                                   selectedClient = null;
+                                   showDialog(
+                                       context: context,
+                                       builder: (context){
+                                         return AddClientDialog(title: "Change ASF");
+                                       }
+                                   );
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                     backgroundColor: (Colors.blue),
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10))),
+                                 child: Text(
+                                   "Change ASF",
+                                   style: GoogleFonts.raleway(
+                                       fontSize: 15,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.white),
+                                 ),
+                               ),
+                             ),
                            ],
                          ),
                          InkWell(
@@ -1032,19 +1116,11 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                               }
 
                               else{
-                                return SizedBox(
-                                  height: height,
-                                  child: InteractiveViewer(
-                                      constrained : false,
-                                      scaleEnabled: false,
-                                      child: DataTable(
-                                        sortColumnIndex: sortColumnIndex,
-                                        headingRowColor: MaterialStateProperty.resolveWith(
-                                                (states) => Colors.grey.shade200),
-                                        columns: AssistantMethods.createColumns(),
-                                        rows: AssistantMethods.createRows(snapshot.data!,context),
-                                      )
-                                  ),
+                                var myData = snapshot.data?.docs.map((e) => CampaignData.fromDocument(e)).toList();
+                                return PaginatedDataTable(
+                                  sortColumnIndex: sortColumnIndex,
+                                  columns: AssistantMethods.createColumns(),
+                                  source: MyDataSource(myData!)
                                 );
                               }
 
@@ -1063,3 +1139,5 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
     );
   }
 }
+
+

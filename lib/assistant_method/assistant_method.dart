@@ -91,7 +91,18 @@ class AssistantMethods{
   }
 
   static List<DataRow> createRows(QuerySnapshot snapshot,BuildContext context) {
-    List<DataRow> newList = snapshot.docs.map((DocumentSnapshot documentSnapshot) {
+    List<DocumentSnapshot> docs = snapshot.docs;
+    docs.sort((a, b) {
+      Map<String, dynamic>? aData = a.data() as Map<String, dynamic>?;
+      Map<String, dynamic>? bData = b.data() as Map<String, dynamic>?;
+      int aSlNo = aData != null && aData.containsKey('slNo') ? aData['slNo'] : 0;
+      int bSlNo = bData != null && bData.containsKey('slNo') ? bData['slNo'] : 0;
+      return aSlNo.compareTo(bSlNo);
+    });
+
+
+    List<DataRow> newList = docs.map((DocumentSnapshot documentSnapshot)  {
+      Map<String, dynamic> docData = documentSnapshot.data() as Map<String, dynamic>;
       return DataRow(
           color: documentSnapshot.get('billStatus') == 'Received'
               ? MaterialStateColor.resolveWith((states) => Colors.green)
@@ -102,32 +113,31 @@ class AssistantMethods{
               : MaterialStateColor.resolveWith((states) => Colors.transparent),
           cells: [
             DataCell(
-              Text(documentSnapshot.data().toString().contains('slNo') ? documentSnapshot.get('slNo') : ""),
+              Text(docData['slNo'].toString()),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('billNo') ? documentSnapshot.get('billNo') : ""),
+              Text(docData['billNo']),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('campaignName') ? documentSnapshot.get('campaignName') : ""),
+              Text(docData['campaignName']),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('description') ? documentSnapshot.get('description') : ""),
+              Text(docData['description']),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('client') ? documentSnapshot.get('client') : ""),
+              Text(docData['client']),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('projectGoal') ? documentSnapshot.get('projectGoal').toStringAsFixed(0) : ""),
+              Text(docData['projectGoal'].toStringAsFixed(0)),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('sales') ? documentSnapshot.get('sales').toStringAsFixed(0) : ""),
-
+              Text(docData['sales'].toStringAsFixed(0)),
               showEditIcon: true,
               onTap: () async {
                 final updatedSales = await showTextDialog2(
@@ -138,42 +148,72 @@ class AssistantMethods{
 
                 if(updatedSales!=null){
                   double sales = double.parse(updatedSales);
-                  double ASF = sales * 0.1;
+                  double ASF = sales * (documentSnapshot.get('ASFPercentage') / 100);
                   double subTotal = sales + ASF;
-                  double amountVat = subTotal * 0.05;
+                  double amountVat = subTotal * (documentSnapshot.get('vatPercentage') / 100);
                   double projectGoal = subTotal + amountVat;
                   double AIT = subTotal * (documentSnapshot.get('AITPercentage') / 100);
                   double totalExpense = documentSnapshot.get('expense') + amountVat + AIT;
                   double grossProfit = projectGoal - totalExpense;
 
-                  documentSnapshot.reference.update({'sales': sales});
-                  documentSnapshot.reference.update({'ASF': ASF});
-                  documentSnapshot.reference.update({'subTotal': subTotal});
-                  documentSnapshot.reference.update({'amountVat': amountVat});
-                  documentSnapshot.reference.update({'projectGoal': projectGoal});
-                  documentSnapshot.reference.update({'AIT': AIT});
-                  documentSnapshot.reference.update({'totalExpense' : totalExpense});
-                  documentSnapshot.reference.update({'grossProfit' : grossProfit});
-                  documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
+                  Map<String, dynamic> updatedSalesMap = {
+                    'sales': sales,
+                    'ASF': ASF,
+                    'subTotal': subTotal,
+                    'amountVat': amountVat,
+                    'projectGoal': projectGoal,
+                    'AIT': AIT,
+                    'totalExpense' : totalExpense,
+                    'grossProfit' : grossProfit,
+                    'lastEditedBy': currentUserInfo?.name
+                  };
+
+                  documentSnapshot.reference.update(updatedSalesMap);
                 }
               },
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('ASF') ? documentSnapshot.get('ASF').toStringAsFixed(0) : ""),
+              Text(docData['ASF'].toStringAsFixed(0)),
+              showEditIcon: true,
+              // onTap: () async {
+              //   final updatedASF = await showTextDialog2(
+              //     context,
+              //     title: 'Change ASF',
+              //     value: documentSnapshot.get('ASF').toString(),
+              //   );
+              //
+              //   if(updatedASF!=null){
+              //     double sales = double.parse(documentSnapshot.get('sales'));
+              //     double subTotal = sales + double.parse(updatedASF);
+              //     double amountVat = subTotal * (documentSnapshot.get('vatPercentage') / 100);
+              //     double projectGoal = subTotal + amountVat;
+              //     double AIT = subTotal * (documentSnapshot.get('AITPercentage') / 100);
+              //     double totalExpense = documentSnapshot.get('expense') + amountVat + AIT;
+              //     double grossProfit = projectGoal - totalExpense;
+              //
+              //     documentSnapshot.reference.update({'subTotal': subTotal});
+              //     documentSnapshot.reference.update({'amountVat': amountVat});
+              //     documentSnapshot.reference.update({'projectGoal': projectGoal});
+              //     documentSnapshot.reference.update({'AIT': AIT});
+              //     documentSnapshot.reference.update({'totalExpense' : totalExpense});
+              //     documentSnapshot.reference.update({'grossProfit' : grossProfit});
+              //     documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
+              //   }
+              // },
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('subTotal') ? documentSnapshot.get('subTotal').toStringAsFixed(0) : ""),
+              Text(docData['subTotal'].toStringAsFixed(0)),
 
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('amountVat') ? documentSnapshot.get('amountVat').toStringAsFixed(0) : ""),
+              Text(docData['amountVat'].toStringAsFixed(0)),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('AIT') ? documentSnapshot.get('AIT').toStringAsFixed(0) : ''),
+              Text(docData['AIT'].toStringAsFixed(0)),
               showEditIcon: true,
               onTap: () async {
                 final updatedAIT = await showTextDialog2(
@@ -187,16 +227,20 @@ class AssistantMethods{
                   double totalExpense = documentSnapshot.get('expense') + documentSnapshot.get('amountVat') + AIT;
                   double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
 
-                  documentSnapshot.reference.update({'AIT': AIT});
-                  documentSnapshot.reference.update({'totalExpense' : totalExpense});
-                  documentSnapshot.reference.update({'grossProfit' : grossProfit});
-                  documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
+                  Map<String, dynamic> updateAitMap = {
+                    'AIT': AIT,
+                    'totalExpense' : totalExpense,
+                    'grossProfit' : grossProfit,
+                    'lastEditedBy': currentUserInfo?.name
+                  };
+
+                  documentSnapshot.reference.update(updateAitMap);
                 }
               },
             ),
 
             DataCell(
-                Text(documentSnapshot.data().toString().contains('expense') ? documentSnapshot.get('expense').toStringAsFixed(0) : ''),
+                Text(docData.containsKey('expense') ? docData['expense'].toStringAsFixed(0) : ''),
                 showEditIcon: true,
                 onTap: () async {
                   final updatedExpense = await showTextDialog2(
@@ -210,10 +254,14 @@ class AssistantMethods{
                     double totalExpense = expense + documentSnapshot.get('amountVat') + documentSnapshot.get('AIT');
                     double grossProfit = documentSnapshot.get('projectGoal') - totalExpense;
 
-                    documentSnapshot.reference.update({'expense': expense});
-                    documentSnapshot.reference.update({'totalExpense' : totalExpense});
-                    documentSnapshot.reference.update({'grossProfit' : grossProfit});
-                    documentSnapshot.reference.update({'lastEditedBy': currentUserInfo?.name});
+                    Map<String, dynamic> updateAitMap = {
+                      'expense' : expense,
+                      'totalExpense' : totalExpense,
+                      'grossProfit' : grossProfit,
+                      'lastEditedBy': currentUserInfo?.name
+                    };
+
+                    documentSnapshot.reference.update(updateAitMap);
                   }
 
                 }
@@ -221,20 +269,20 @@ class AssistantMethods{
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('totalExpense')
-                  ? documentSnapshot.get('totalExpense').toStringAsFixed(0)
+              Text(docData.containsKey('totalExpense')
+                  ? docData['totalExpense'].toStringAsFixed(0)
                   : ''),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('grossProfit')
-                  ? documentSnapshot.get('grossProfit').toStringAsFixed(0)
+              Text(docData.containsKey('grossProfit')
+                  ? docData['grossProfit'].toStringAsFixed(0)
                   : ''),
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('billSent')
-                  ? documentSnapshot.get('billSent').toStringAsFixed(0)
+              Text(docData.containsKey('billSent')
+                  ? docData['billSent'].toStringAsFixed(0)
                   : ''),
               showEditIcon: true,
               onTap: () async {
@@ -253,8 +301,8 @@ class AssistantMethods{
             ),
 
             DataCell(
-              Text(documentSnapshot.data().toString().contains('billReceived')
-                  ? documentSnapshot.get('billReceived').toStringAsFixed(0)
+              Text(docData.containsKey('billReceived')
+                  ? docData['billReceived'].toStringAsFixed(0)
                   : ''),
               showEditIcon: true,
               onTap: () async {
@@ -274,7 +322,7 @@ class AssistantMethods{
             ),
 
             DataCell(
-              Text(documentSnapshot.get('billStatus')),
+              Text(docData['billStatus']),
 
               showEditIcon: true,
               onTap: () async {
@@ -300,7 +348,7 @@ class AssistantMethods{
                     documentSnapshot.reference.update({'startingDate': formattedStartingDate});
                   }
                 },
-                Text(documentSnapshot.get('startingDate') ?? '')),
+                Text(docData['startingDate'] ?? '')),
 
             DataCell(
                 showEditIcon: true,
@@ -310,52 +358,52 @@ class AssistantMethods{
                     documentSnapshot.reference.update({'endingDate': formattedEndingDate});
                   }
                 },
-                Text(documentSnapshot.get('endingDate') ?? '')),
+                Text(docData['endingDate'] ?? '')),
 
-            DataCell(
-              showEditIcon: true,
-              onTap: () async {
-                await selectFile(context);
-                if(pickedFile != null){
-                  showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                  );
-
-                  await uploadFile();
-                  documentSnapshot.reference.update({'pdfLink': pdfFileUrl});
-                  Navigator.pop(context);
-                  var snackBar = const SnackBar(content: Text("File uploaded successfully"));
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                }
-
-
-              },
-              SizedBox(
-                width: 300,
-                child: TextButton(
-                  onPressed: () {
-                    if(documentSnapshot.get('pdfLink') != null) {
-                      downloadFile(documentSnapshot.get('pdfLink'));
-                    }
-
-                  },
-
-
-                  child: Text(documentSnapshot.get('pdfLink') ?? '',
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                  ),
-                ),
-              ),
-            ),
+            // DataCell(
+            //   showEditIcon: true,
+            //   onTap: () async {
+            //     await selectFile(context);
+            //     if(pickedFile != null){
+            //       showDialog(
+            //           context: context,
+            //           barrierDismissible: false,
+            //           builder: (BuildContext context) {
+            //             return const Center(child: CircularProgressIndicator());
+            //           }
+            //       );
+            //
+            //       await uploadFile();
+            //       documentSnapshot.reference.update({'pdfLink': pdfFileUrl});
+            //       Navigator.pop(context);
+            //       var snackBar = const SnackBar(content: Text("File uploaded successfully"));
+            //       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            //     }
+            //
+            //
+            //   },
+            //   SizedBox(
+            //     width: 300,
+            //     child: TextButton(
+            //       onPressed: () {
+            //         if(docData['pdfLink'] != null) {
+            //           downloadFile(docData['pdfLink']);
+            //         }
+            //
+            //       },
+            //
+            //
+            //       child: Text(docData['pdfLink'] ?? '',
+            //         overflow: TextOverflow.ellipsis,
+            //         softWrap: true,
+            //       ),
+            //     ),
+            //   ),
+            // ),
 
             DataCell(
               Text(documentSnapshot.data().toString().contains('status')
-                  ? documentSnapshot.get('status')
+                  ? docData['status']
                   : ''),
               showEditIcon: true,
               onTap: () async {
@@ -374,7 +422,7 @@ class AssistantMethods{
 
             DataCell(
               Text(documentSnapshot.data().toString().contains('lastEditedBy')
-                  ? documentSnapshot.get('lastEditedBy')
+                  ? docData['lastEditedBy']
                   : ''),
             ),
 
@@ -407,7 +455,8 @@ class AssistantMethods{
                 ),
               );
             })
-          ]);
+          ]
+      );
     }).toList();
 
     return newList;
@@ -415,7 +464,7 @@ class AssistantMethods{
 
   static createColumns(){
     return const [
-      DataColumn(label: Text("Sl No")),
+      DataColumn(label: Text("SL No")),
       DataColumn(label: Text("Bill No")),
       DataColumn(label: Text("Campaign Name")),
       DataColumn(label: Text("Description")),
@@ -437,7 +486,6 @@ class AssistantMethods{
       DataColumn(label: Text("File")),
       DataColumn(label: Text("Status")),
       DataColumn(label: Text("Last Edited By")),
-      DataColumn(label: Text("")),
     ];
   }
 

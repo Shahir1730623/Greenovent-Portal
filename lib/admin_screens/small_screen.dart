@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:greenovent_portal/assistant_method/assistant_method.dart';
 import 'dart:html' as html;
 import '../form/sub_admin_form.dart';
+import '../model/data_model.dart';
+import '../model/table_data.dart';
 import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget_add_client.dart';
 
@@ -922,6 +924,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                 .snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
+                                debugPrint('Error = ${snapshot.error}');
                                 return Text('Error = ${snapshot.error}');
                               }
 
@@ -931,19 +934,12 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                               }
 
                               else{
-                                return SizedBox(
-                                  height: height,
-                                  child: InteractiveViewer(
-                                      constrained : false,
-                                      scaleEnabled: false,
-                                      child: DataTable(
-                                        sortColumnIndex: sortColumnIndex,
-                                        headingRowColor: MaterialStateProperty.resolveWith(
-                                                (states) => Colors.grey.shade200),
-                                        columns: AssistantMethods.createColumns(),
-                                        rows: AssistantMethods.createRows(snapshot.data!,context),
-                                      )
-                                  ),
+                                var myData = snapshot.data?.docs.map((e) => CampaignData.fromDocument(e)).toList();
+                                return PaginatedDataTable(
+                                    sortColumnIndex: sortColumnIndex,
+                                    columns: AssistantMethods.createColumns(),
+                                    source: MyDataSource(myData!)
+                                  // rows: AssistantMethods.createRows(snapshot.data!,context),
                                 );
                               }
 

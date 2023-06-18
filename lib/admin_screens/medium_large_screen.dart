@@ -8,6 +8,8 @@ import '../assistant_method/assistant_method.dart';
 import '../authentication_screens/login_screen.dart';
 import '../form/sub_admin_form.dart';
 import '../global.dart';
+import '../model/data_model.dart';
+import '../model/table_data.dart';
 import '../widget/dialog_widget.dart';
 import '../widget/dialog_widget_add_client.dart';
 
@@ -1014,7 +1016,6 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                         height: height * 0.02,
                       ),
 
-                      //Now let's add the Table
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -1028,6 +1029,7 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                                 .snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
+                                debugPrint('Error = ${snapshot.error}');
                                 return Text('Error = ${snapshot.error}');
                               }
 
@@ -1037,19 +1039,11 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                               }
 
                               else{
-                                return SizedBox(
-                                  height: height,
-                                  child: InteractiveViewer(
-                                      constrained : false,
-                                      scaleEnabled: false,
-                                      child: DataTable(
-                                        sortColumnIndex: sortColumnIndex,
-                                        headingRowColor: MaterialStateProperty.resolveWith(
-                                                (states) => Colors.grey.shade200),
-                                        columns: AssistantMethods.createColumns(),
-                                        rows: AssistantMethods.createRows(snapshot.data!,context),
-                                      )
-                                  ),
+                                var myData = snapshot.data?.docs.map((e) => CampaignData.fromDocument(e)).toList();
+                                return PaginatedDataTable(
+                                    sortColumnIndex: sortColumnIndex,
+                                    columns: AssistantMethods.createColumns(),
+                                    source: MyDataSource(myData!)
                                 );
                               }
 
