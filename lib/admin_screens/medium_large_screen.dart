@@ -972,7 +972,7 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                                     showDialog(
                                         context: context,
                                         builder: (context){
-                                          return AddClientDialog(title: "Change AIT");
+                                          return AddClientDialog(title: "Change Params");
                                         }
                                     );
                                   },
@@ -981,14 +981,14 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10))),
                                   child: Text(
-                                    "Change AIT",
+                                    "Change Params",
                                     style: GoogleFonts.raleway(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
                                 ),
-                              ),
+                              )
                             ],
                           ),
                           InkWell(
@@ -1043,7 +1043,7 @@ class _MediumLargeScreenWidgetState extends State<MediumLargeScreenWidget> {
                                 return PaginatedDataTable(
                                     sortColumnIndex: sortColumnIndex,
                                     columns: AssistantMethods.createColumns(),
-                                    source: MyDataSource(myData!)
+                                    source: MyDataSource(myData!,context)
                                 );
                               }
 

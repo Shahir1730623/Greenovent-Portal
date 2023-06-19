@@ -866,24 +866,23 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                     showDialog(
                                         context: context,
                                         builder: (context){
-                                          return AddClientDialog(title: "Change AIT");
+                                          return AddClientDialog(title: "Change Params");
                                         }
                                     );
-
                                   },
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor: (Colors.blue),
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10))),
                                   child: Text(
-                                    "Change AIT",
+                                    "Change Params",
                                     style: GoogleFonts.raleway(
-                                        fontSize: 13,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
                                 ),
-                              ),
+                              )
                             ],
                           ),
                           InkWell(
@@ -938,7 +937,7 @@ class _MediumScreenWidgetState extends State<MediumScreenWidget> {
                                 return PaginatedDataTable(
                                     sortColumnIndex: sortColumnIndex,
                                     columns: AssistantMethods.createColumns(),
-                                    source: MyDataSource(myData!)
+                                    source: MyDataSource(myData!,context)
                                   // rows: AssistantMethods.createRows(snapshot.data!,context),
                                 );
                               }

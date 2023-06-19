@@ -855,7 +855,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                             width: width * 0.01,
                           ),
                           SizedBox(
-                            width: width * 0.32,
+                            width: width * 0.32 ,
                             height: 45,
                             child: ElevatedButton(
                               onPressed: () async {
@@ -863,24 +863,23 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                 showDialog(
                                     context: context,
                                     builder: (context){
-                                      return AddClientDialog(title: "Change AIT");
+                                      return AddClientDialog(title: "Change Params");
                                     }
                                 );
-
                               },
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: (Colors.blue),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10))),
                               child: Text(
-                                "Change AIT",
+                                "Change Params",
                                 style: GoogleFonts.raleway(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white),
                               ),
                             ),
-                          ),
+                          )
 
                         ],
                       ),
@@ -938,7 +937,7 @@ class _SmallScreenWidgetState extends State<SmallScreenWidget> {
                                 return PaginatedDataTable(
                                     sortColumnIndex: sortColumnIndex,
                                     columns: AssistantMethods.createColumns(),
-                                    source: MyDataSource(myData!)
+                                    source: MyDataSource(myData!,context)
                                   // rows: AssistantMethods.createRows(snapshot.data!,context),
                                 );
                               }

@@ -975,7 +975,7 @@ class _MediumSmallScreenWidgetState extends State<MediumSmallScreenWidget> {
                                     showDialog(
                                         context: context,
                                         builder: (context){
-                                          return AddClientDialog(title: "Change AIT");
+                                          return AddClientDialog(title: "Change Params");
                                         }
                                     );
                                   },
@@ -984,14 +984,14 @@ class _MediumSmallScreenWidgetState extends State<MediumSmallScreenWidget> {
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10))),
                                   child: Text(
-                                    "Change AIT",
+                                    "Change Params",
                                     style: GoogleFonts.raleway(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white),
                                   ),
                                 ),
-                              ),
+                              )
                             ],
                           ),
                           InkWell(
@@ -1046,7 +1046,7 @@ class _MediumSmallScreenWidgetState extends State<MediumSmallScreenWidget> {
                                 return PaginatedDataTable(
                                     sortColumnIndex: sortColumnIndex,
                                     columns: AssistantMethods.createColumns(),
-                                    source: MyDataSource(myData!)
+                                    source: MyDataSource(myData!,context)
                                   // rows: AssistantMethods.createRows(snapshot.data!,context),
                                 );
                               }

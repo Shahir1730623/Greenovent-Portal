@@ -161,8 +161,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                       ),
                     ],
                   ),
-                ) ??
-                    false;
+                );
               }
             });
           },
@@ -263,6 +262,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                   totalClients = 0;
                                   for (var result in snapshot.data!.docs) {
                                     totalClients++;
+                                    debugPrint(result.toString());
                                   }
 
                                   return Row(
@@ -300,7 +300,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  totalCampaigns.toString() + " campaigns",
+                                                  "$totalCampaigns campaigns",
                                                   style: const TextStyle(
                                                     fontSize: 32,
                                                     fontWeight: FontWeight.bold,
@@ -345,7 +345,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  ongoingCampaign.toString() + " campaigns",
+                                                  "$ongoingCampaign campaigns",
                                                   style: const TextStyle(
                                                     color: Colors.red,
                                                     fontSize: 32,
@@ -389,7 +389,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                                   height: 20.0,
                                                 ),
                                                 Text(
-                                                  totalClients.toString() + " Clients",
+                                                  "$totalClients Clients",
                                                   style: const TextStyle(
                                                     fontSize: 32,
                                                     color: Colors.amber,
@@ -670,7 +670,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                       height: 20.0,
                                     ),
                                     Text(
-                                      "Earning: ৳$ongoingCampaignRevenue",
+                                      "Earning: ৳${ongoingCampaignRevenue.toStringAsFixed(0)}",
                                       style: const TextStyle(
                                           color: Colors.grey,
                                           fontSize: 18.0,
@@ -764,7 +764,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: Colors.white,
-                                        prefixIcon: Icon(Icons.people_alt_rounded,color: Colors.black,),
+                                        prefixIcon: const Icon(Icons.people_alt_rounded,color: Colors.black,),
                                         enabledBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 width: 1.5,
@@ -1019,7 +1019,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                    showDialog(
                                        context: context,
                                        builder: (context){
-                                         return AddClientDialog(title: "Change AIT");
+                                         return AddClientDialog(title: "Change Params");
                                        }
                                    );
                                  },
@@ -1028,36 +1028,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                      shape: RoundedRectangleBorder(
                                          borderRadius: BorderRadius.circular(10))),
                                  child: Text(
-                                   "Change AIT",
-                                   style: GoogleFonts.raleway(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: Colors.white),
-                                 ),
-                               ),
-                             ),
-                             SizedBox(
-                               width: width * 0.01,
-                             ),
-                             SizedBox(
-                               width: width * 0.11,
-                               height: 45,
-                               child: ElevatedButton(
-                                 onPressed: () async {
-                                   selectedClient = null;
-                                   showDialog(
-                                       context: context,
-                                       builder: (context){
-                                         return AddClientDialog(title: "Change ASF");
-                                       }
-                                   );
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                     backgroundColor: (Colors.blue),
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10))),
-                                 child: Text(
-                                   "Change ASF",
+                                   "Change Params",
                                    style: GoogleFonts.raleway(
                                        fontSize: 15,
                                        fontWeight: FontWeight.bold,
@@ -1120,7 +1091,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                 return PaginatedDataTable(
                                   sortColumnIndex: sortColumnIndex,
                                   columns: AssistantMethods.createColumns(),
-                                  source: MyDataSource(myData!)
+                                  source: MyDataSource(myData!,context)
                                 );
                               }
 

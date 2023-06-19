@@ -25,6 +25,7 @@ class DataInputForm extends StatefulWidget {
 class _DataInputFormState extends State<DataInputForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController campaignNameTextEditingController = TextEditingController();
+  TextEditingController campaignLinkTextEditingController = TextEditingController();
   TextEditingController campaignDescriptionTextEditingController = TextEditingController();
   TextEditingController projectGoalTextEditingController = TextEditingController();
   TextEditingController salesTextEditingController = TextEditingController();
@@ -33,9 +34,9 @@ class _DataInputFormState extends State<DataInputForm> {
   TextEditingController billReceivedTextEditingController = TextEditingController();
   TextEditingController aitTextEditingController = TextEditingController();
   TextEditingController asfTextEditingController = TextEditingController();
+  TextEditingController vatTextEditingController = TextEditingController();
 
   var selectedClient;
-  double? selectedVat;
 
   List<String> degreeList = [];
   List<double> vatList = [7.5,15];
@@ -43,8 +44,7 @@ class _DataInputFormState extends State<DataInputForm> {
   DateTime endingDate = DateTime.now();
   String? formattedStartingDate,formattedEndingDate;
   int startingDateCounter = 0, endingDateCounter = 0;
-  double? initialAit;
-  double? initialASF;
+  double? initialAit,initialASF,initialVat;
   bool flag = false, flag2 = false;
 
   //PlatformFile? pickedFile;
@@ -165,35 +165,24 @@ class _DataInputFormState extends State<DataInputForm> {
     return now.microsecondsSinceEpoch.toString();
   }
 
-  getAit() async {
+  getParams() async {
     var snapshot = await FirebaseFirestore.instance
         .collection('clientList')
         .where('name', isEqualTo: selectedClient)
         .get();
 
     for (var result in snapshot.docs) {
-      initialAit = (result.data()['AIT']);
+      initialAit = (result.data()['AIT'] / 100);
+      initialASF = (result.data()['ASF'] / 100);
+      initialVat = (result.data()['vat'] / 100);
     }
 
+    aitTextEditingController.text = (initialAit! * 100).toString();
+    asfTextEditingController.text = (initialASF! * 100).toString();
+    vatTextEditingController.text = (initialVat! * 100).toString();
     setState(() {
-      aitTextEditingController.text = initialAit.toString();
+
     });
-  }
-
-  getASF() async {
-    var snapshot = await FirebaseFirestore.instance
-        .collection('clientList')
-        .where('name', isEqualTo: selectedClient)
-        .get();
-
-    for (var result in snapshot.docs) {
-      initialASF = (result.data()['ASF']);
-    }
-
-    setState(() {
-      asfTextEditingController.text = initialASF.toString();
-    });
-
   }
 
   Future<int> getCountOfClientData() async {
@@ -210,12 +199,11 @@ class _DataInputFormState extends State<DataInputForm> {
 
   saveDataToDatabase() async{
     double sales = double.parse(salesTextEditingController.text.trim());
-    double ASF = double.parse(salesTextEditingController.text.trim()) * 0.10;
+    double ASF = double.parse(salesTextEditingController.text.trim()) * initialASF!;
     double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
-    double amountVat = subTotal * 0.15;
+    double amountVat = subTotal * initialVat!;
+    double AIT = subTotal * initialAit!;
     double projectGoal = subTotal + amountVat;
-    double AIT = subTotal * (initialAit! / 100);
-    double AITPercentage = initialAit!;
     double expense = double.tryParse(expenseTextEditingController.text.trim()) ?? 0;
     double totalExpense = expenseTextEditingController.text.trim().isNotEmpty ? double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT : 0;
     double grossProfit = expenseTextEditingController.text.trim().isNotEmpty ? projectGoal - (double.parse(expenseTextEditingController.text.trim()) + amountVat + AIT) : 0;
@@ -242,15 +230,14 @@ class _DataInputFormState extends State<DataInputForm> {
         .join('');
 
     Map<String,dynamic> data = {
-      'slNo' : "${widget.totalCampaigns + 1}",
       'billNo' : 'GR/$clientAbbr-${countClientData + 1}/${AssistantMethods.getTodayDate()}',
       'campaignName' : campaignNameTextEditingController.text.trim(),
+      'campaignLink' : campaignLinkTextEditingController.text.trim(),
       'description' : campaignDescriptionTextEditingController.text.trim(),
       'client' : selectedClient.toString(),
       'projectGoal' : projectGoal,
       'sales' : sales,
       'ASF' :  ASF,
-      'AITPercentage' : AITPercentage,
       'subTotal' :  subTotal,
       'amountVat' : amountVat,
       'AIT' : AIT,
@@ -408,6 +395,62 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
+                              // Campaign Link
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Campaign Link',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 12.0,
+                                      color: AppColors.blueDarkColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  TextFormField(
+                                    controller: campaignLinkTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      hintText: "Campaign Link",
+                                      suffixIcon: campaignLinkTextEditingController.text.isEmpty
+                                          ? Container(width: 0)
+                                          : IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            campaignLinkTextEditingController.clear(),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
+                                    ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: height * 0.025),
+
+                                ],
+                              ),
+
                               // Campaign Description
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,8 +571,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                                 selectedClient = newValue;
                                               });
 
-                                              getAit();
-                                              getASF();
+                                              getParams();
                                             },
 
                                             validator: (value){
@@ -554,7 +596,7 @@ class _DataInputFormState extends State<DataInputForm> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Vat%',
+                                    'VAT %',
                                     style: GoogleFonts.raleway(
                                       fontSize: 12.0,
                                       color: AppColors.blueDarkColor,
@@ -562,62 +604,43 @@ class _DataInputFormState extends State<DataInputForm> {
                                     ),
                                   ),
                                   const SizedBox(height: 6.0),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10)
+                                  TextFormField(
+                                    readOnly: true,
+                                    keyboardType: TextInputType.number,
+                                    controller: vatTextEditingController,
+                                    style: const TextStyle(
+                                      color: Colors.black,
                                     ),
-                                    child:  DropdownButtonFormField(
-                                      items: vatList.map((vat) {
-                                        return DropdownMenuItem(
-                                          value: vat,
-                                          child: Text(
-                                            vat.toString(),
-                                            style: const TextStyle(color: AppColors.blueDarkColor),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        enabledBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.5,
-                                                color: Colors.grey.shade300),
-                                            borderRadius: BorderRadius.circular(15)
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              width: 1.5,
-                                              color: Colors.grey.shade300),
-                                        ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "Vat(%)",
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
                                       ),
-                                      iconSize: 26,
-                                      dropdownColor: Colors.white,
-                                      isExpanded: true,
-                                      value: selectedVat,
-                                      hint: const Text(
-                                        "Select vat(%)",
-                                        style: TextStyle(
-                                          fontSize: 15.0,
-                                          color: AppColors.blueDarkColor,
-                                        ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10.0),
                                       ),
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          selectedVat = newValue;
-                                        });
-                                      },
-                                      validator: (value) {
-                                        if (value == null) {
-                                          return "Select vat(%)";
-                                        } else {
-                                          return null;
-                                        }
-                                      },
+                                      hintStyle:
+                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
+                                      labelStyle:
+                                      const TextStyle(
+                                          color: AppColors.blueDarkColor, fontSize: 15),
                                     ),
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return "The field is empty";
+                                      } else {
+                                        return null;
+                                      }
+                                    },
                                   ),
                                   SizedBox(height: height * 0.025),
+
                                 ],
                               ),
 
