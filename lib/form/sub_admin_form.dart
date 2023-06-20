@@ -118,7 +118,7 @@ class _DataInputFormState extends State<DataInputForm> {
     DateTime? pickedDate = await showDatePicker(
         context: context,
         initialDate: DateTime.now(), //get today's date
-        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
+        firstDate:DateTime(2022), //DateTime.now() - not to allow to choose before today.
         lastDate: DateTime(2030)
     );
 
@@ -174,12 +174,10 @@ class _DataInputFormState extends State<DataInputForm> {
     for (var result in snapshot.docs) {
       initialAit = (result.data()['AIT'] / 100);
       initialASF = (result.data()['ASF'] / 100);
-      initialVat = (result.data()['vat'] / 100);
     }
 
     aitTextEditingController.text = (initialAit! * 100).toString();
     asfTextEditingController.text = (initialASF! * 100).toString();
-    vatTextEditingController.text = (initialVat! * 100).toString();
     setState(() {
 
     });
@@ -201,7 +199,7 @@ class _DataInputFormState extends State<DataInputForm> {
     double sales = double.parse(salesTextEditingController.text.trim());
     double ASF = double.parse(salesTextEditingController.text.trim()) * initialASF!;
     double subTotal = double.parse(salesTextEditingController.text.trim()) + ASF;
-    double amountVat = subTotal * initialVat!;
+    double amountVat = subTotal * 0.15;
     double AIT = subTotal * initialAit!;
     double projectGoal = subTotal + amountVat;
     double expense = double.tryParse(expenseTextEditingController.text.trim()) ?? 0;
@@ -591,58 +589,6 @@ class _DataInputFormState extends State<DataInputForm> {
                                 ],
                               ),
 
-                              // Vat(%)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'VAT %',
-                                    style: GoogleFonts.raleway(
-                                      fontSize: 12.0,
-                                      color: AppColors.blueDarkColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6.0),
-                                  TextFormField(
-                                    readOnly: true,
-                                    keyboardType: TextInputType.number,
-                                    controller: vatTextEditingController,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                    decoration: InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      labelText: "Vat(%)",
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                      hintStyle:
-                                      const TextStyle(color: AppColors.blueDarkColor, fontSize: 15),
-                                      labelStyle:
-                                      const TextStyle(
-                                          color: AppColors.blueDarkColor, fontSize: 15),
-                                    ),
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return "The field is empty";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(height: height * 0.025),
-
-                                ],
-                              ),
 
                               // ASF
                               Column(

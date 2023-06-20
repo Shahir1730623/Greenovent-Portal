@@ -1044,6 +1044,8 @@ class _MediumSmallScreenWidgetState extends State<MediumSmallScreenWidget> {
                               else{
                                 var myData = snapshot.data?.docs.map((e) => CampaignData.fromDocument(e)).toList();
                                 return PaginatedDataTable(
+                                    rowsPerPage: 10,
+                                    columnSpacing: 30,
                                     sortColumnIndex: sortColumnIndex,
                                     columns: AssistantMethods.createColumns(),
                                     source: MyDataSource(myData!,context)

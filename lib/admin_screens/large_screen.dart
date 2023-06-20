@@ -752,6 +752,7 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                                   totalClients = 0;
                                   for (var result in snapshot.data!.docs) {
                                     totalClients++;
+                                    debugPrint(result.toString());
                                   }
                                   return SizedBox(
                                     child: DropdownButtonFormField(
@@ -1089,6 +1090,8 @@ class _LargeScreenWidgetState extends State<LargeScreenWidget> {
                               else{
                                 var myData = snapshot.data?.docs.map((e) => CampaignData.fromDocument(e)).toList();
                                 return PaginatedDataTable(
+                                  rowsPerPage: 10,
+                                  columnSpacing: 30,
                                   sortColumnIndex: sortColumnIndex,
                                   columns: AssistantMethods.createColumns(),
                                   source: MyDataSource(myData!,context)

@@ -17,7 +17,6 @@ class _AddClientDialogState extends State<AddClientDialog> {
   TextEditingController addClientController = TextEditingController();
   TextEditingController aitClientController = TextEditingController();
   TextEditingController asfController = TextEditingController();
-  TextEditingController vatController = TextEditingController();
   var selectedClient;
   double? initialAit;
   double? initialASF;
@@ -37,13 +36,11 @@ class _AddClientDialogState extends State<AddClientDialog> {
     for (var result in snapshot.docs) {
       initialAit = (result.data()['AIT']);
       initialASF = (result.data()['ASF']);
-      initialVat = (result.data()['vat']);
     }
 
     setState(() {
       aitClientController.text = initialAit.toString();
       asfController.text = initialASF.toString();
-      vatController.text = initialVat.toString();
     });
   }
 
@@ -57,7 +54,6 @@ class _AddClientDialogState extends State<AddClientDialog> {
     await clientSnapshot.reference.update({
       'AIT': double.parse(aitClientController.text),
       'ASF' : double.parse(asfController.text),
-      'vat' : int.parse(vatController.text)
     });
   }
 
@@ -202,43 +198,6 @@ class _AddClientDialogState extends State<AddClientDialog> {
                           ],
                         ),
                         SizedBox(height: height * 0.03,),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: vatController,
-                                decoration: InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1.5,
-                                            color: Colors.grey.shade300),
-                                        borderRadius:
-                                        BorderRadius.circular(10)),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1.5,
-                                            color: Colors.grey.shade300),
-                                        borderRadius:
-                                        BorderRadius.circular(10)),
-                                    labelText: "Input VAT"
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  }
-
-                                  else {
-                                    return null;
-                                  }
-                                },
-                              ),
-                            ),
-
-                            const SizedBox(width: 10,),
-                            const Text("%",style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 30),)
-                          ],
-                        ),
-                        SizedBox(height: height * 0.03,),
                         SizedBox(
                           height: height * 0.04,
                           width: width * 0.15,
@@ -250,7 +209,6 @@ class _AddClientDialogState extends State<AddClientDialog> {
                                   'name': addClientController.text,
                                   'AIT' : double.parse(aitClientController.text.trim()),
                                   'ASF' : double.parse(asfController.text.trim()),
-                                  'vat' : int.parse(vatController.text.trim())
                                 };
 
                                 FirebaseFirestore.instance.collection('clientList').doc(idGenerator()).set(data);
@@ -410,50 +368,13 @@ class _AddClientDialogState extends State<AddClientDialog> {
                           ],
                         ),
                         SizedBox(height: height * 0.03,),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: vatController,
-                                decoration: InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1.5,
-                                            color: Colors.grey.shade300),
-                                        borderRadius:
-                                        BorderRadius.circular(10)),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1.5,
-                                            color: Colors.grey.shade300),
-                                        borderRadius:
-                                        BorderRadius.circular(10)),
-                                    labelText: "Input VAT"
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "The field is empty";
-                                  }
-
-                                  else {
-                                    return null;
-                                  }
-                                },
-                              ),
-                            ),
-
-                            const SizedBox(width: 10,),
-                            const Text("%",style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 30),)
-                          ],
-                        ),
-                        SizedBox(height: height * 0.03,),
                         SizedBox(
                           height: height * 0.04,
                           width: width * 0.15,
                           child: ElevatedButton(
                             child: const Text('Done'),
                             onPressed: () async{
-                              if(selectedClient != null && aitClientController.text.isNotEmpty && asfController.text.isNotEmpty && vatController.text.isNotEmpty){
+                              if(selectedClient != null && aitClientController.text.isNotEmpty && asfController.text.isNotEmpty){
                                 await setParams();
                                 var snackBar = const SnackBar(content: Text('Changed Successfully'));
                                 ScaffoldMessenger.of(context).showSnackBar(snackBar);

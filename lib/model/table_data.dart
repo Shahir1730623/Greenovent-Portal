@@ -23,7 +23,7 @@ class MyDataSource extends DataTableSource {
     DateTime? pickedDate = await showDatePicker(
         context: context,
         initialDate: DateTime.now(), //get today's date
-        firstDate:DateTime.now(), //DateTime.now() - not to allow to choose before today.
+        firstDate:DateTime(2022), //DateTime.now() - not to allow to choose before today.
         lastDate: DateTime(2030)
     );
 
@@ -372,7 +372,7 @@ class MyDataSource extends DataTableSource {
 
             },
             SizedBox(
-              width: 300,
+              width: 270,
               child: TextButton(
                 onPressed: () {
                   if(data[index].pdfLink.isNotEmpty) {
